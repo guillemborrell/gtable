@@ -89,7 +89,13 @@ class Table:
         for i, k in enumerate(self._data):
             if key == k:
                 return self._index[i, :]
-    
+
+    def _index_index(self, key):
+        # This only works with OrderedDicts
+        for i, k in enumerate(self._data):
+            if key == k:
+                return i
+
     def __init__(self, data={}):
         # This dictionary stores the columns
         self._data = OrderedDict()
@@ -143,6 +149,9 @@ class Table:
         """
         Column concatenation. Resets the order.
         """
+        if k in self._data:
+            raise KeyError("Key {} already present".format(k))
+
         if type(v) == list:
             self._data[k] = np.array(v)
                     
@@ -262,7 +271,7 @@ class Table:
             if type(value) == Column:
                 if key in self._data:
                     self._data[key] = value.values
-                    self._index[self._index_column(key), :] = value.index
+                    self._index[self._index_index(key), :] = value.index
                 else:
                     self.hcat(key, value.values, value.index)
 
@@ -282,28 +291,3 @@ class Table:
     @property
     def index(self):
         return self._index
-            
-if __name__ == '__main__':
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
-    print(t)
-    print(t.a)
-    t.hcat('c', [7,8,9])
-    print(t)
-    
-    t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
-    t.vcat(t1)
-
-    for r in t.records():
-        print(r)
-    
-    t.e = t.a + t.a / 2
-
-    for r in t.records():
-        print(r)
-
-    print(t)
-
-    t2 = Table()
-    print(t2)
-    t2.a = np.arange(10)
-    print(t2)

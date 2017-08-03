@@ -1,6 +1,7 @@
 from gtable import Table
 import numpy as np
 import pandas as pd
+import cProfile
 
 class TimeSuite:
     """
@@ -18,10 +19,16 @@ class TimeSuite:
         t1 = Table()
 
     def time_setattr(self):
-        self.tlarge.b = self.tlarge.a 
+        self.tlarge.b = self.tlarge.a
 
     def time_setattr_small(self):
         self.t.a = self.small
 
     def time_mul_setattr(self):
         self.tlarge.c = self.tlarge.a + self.tlarge.b
+
+if __name__ == '__main__':
+    t = TimeSuite()
+    t.setup()
+    cProfile.runctx("t.time_setattr()", globals(), locals(), "gtable.prof")
+    
