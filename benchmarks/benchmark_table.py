@@ -11,9 +11,14 @@ class TimeSuite:
     def setup(self):
         self.small = np.arange(100)
         self.t = Table()
+        self.t.a = np.arange(100)
+        self.t.b = np.arange(100)
         self.tlarge = Table()
         self.tlarge.a = np.arange(1E6)
         self.tlarge.b = np.arange(1E6)
+
+    def time_base(self):
+        pass
 
     def time_creation(self):
         t1 = Table()
@@ -22,7 +27,10 @@ class TimeSuite:
         self.tlarge.b = self.tlarge.a
 
     def time_setattr_small(self):
-        self.t.a = self.small
+        self.t.d = self.small
+
+    def time_mul_setattr_small(self):
+        self.t.c = self.t.a * self.t.b
 
     def time_mul_setattr(self):
         self.tlarge.c = self.tlarge.a + self.tlarge.b
