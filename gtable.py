@@ -128,7 +128,6 @@ class Table:
 
         # Create the index and the ordered arrays
         self._index = np.ones((len(data), length_last), dtype=np.uint8)
-        self._order = np.arange(length_last)
             
     def __repr__(self):
         column_info = list()
@@ -144,7 +143,7 @@ class Table:
     
     def __getattr__(self, key):
         return Column(self._data[key], self._index_column(key))
-
+    
     def hcat(self, k, v, index=None):
         """
         Column concatenation. Resets the order.
@@ -197,8 +196,6 @@ class Table:
             # Concatenate the new column to the bitmap.
             self._index = np.concatenate([self._index, np.atleast_2d(index)])
 
-        # Reset the order
-        self._order = np.arange(self._index.shape[1])
 
     def vcat(self, table):
         """Vertical (Table) concatenation. Resets the orfder"""
@@ -238,31 +235,46 @@ class Table:
                 self._data[new_key] = table._data[new_key]
                 new_cols_added += 1
 
-        # Reset the order
-        self._order = np.arange(self._index.shape[1]) 
-        
                 
     def records(self, fill=False):
         """Generator that returns a dictionary for each row of the table"""
         # Infinite counter. SLOOOOOOW. This is columnar storage.
         counters = np.zeros((self._index.shape[0]), dtype=np.int)
         keys = np.array([k for k in self._data])
+        
+        if self._order is not None:
+            for record in self._index.T[self._order]:
+                selected_keys = keys[np.where(record)]
+                selected_counters = counters[np.where(record)]
+                selected_values = list()
+                for k, c in zip(selected_keys, selected_counters):
+                    selected_values.append(self._data[k][c])
+                counters[np.where(record)] += 1
+            
+                if fill:
+                    rec = {k: v for k, v in zip(selected_keys, selected_values)}
+                    remaining = set(keys) - set(selected_keys)
+                    rec.update({k: np.nan for k in remaining})
+                    yield rec
+                else:
+                    yield {k: v for k, v in zip(selected_keys, selected_values)}
+        else:
+            for record in self._index.T:
+                selected_keys = keys[np.where(record)]
+                selected_counters = counters[np.where(record)]
+                selected_values = list()
+                for k, c in zip(selected_keys, selected_counters):
+                    selected_values.append(self._data[k][c])
+                counters[np.where(record)] += 1
+            
+                if fill:
+                    rec = {k: v for k, v in zip(selected_keys, selected_values)}
+                    remaining = set(keys) - set(selected_keys)
+                    rec.update({k: np.nan for k in remaining})
+                    yield rec
+                else:
+                    yield {k: v for k, v in zip(selected_keys, selected_values)}
 
-        for record in self._index.T[self._order]:
-            selected_keys = keys[np.where(record)]
-            selected_counters = counters[np.where(record)]
-            selected_values = list()
-            for k, c in zip(selected_keys, selected_counters):
-                selected_values.append(self._data[k][c])
-            counters[np.where(record)] += 1
-
-            if fill:
-                rec = {k: v for k, v in zip(selected_keys, selected_values)}
-                remaining = set(keys) - set(selected_keys)
-                rec.update({k: np.nan for k in remaining})
-                yield rec
-            else:
-                yield {k: v for k, v in zip(selected_keys, selected_values)}
 
     def __setattr__(self, key, value):
         if key.startswith('_'):
