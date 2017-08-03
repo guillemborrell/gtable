@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import sys
-from collections import defaultdict
+from collections import OrderedDict
+from itertools import chain
 
 
 class Column:
@@ -55,10 +56,21 @@ class Column:
         elif type(y) == Column:
             return Column(self.values / y.values, self.index)
 
+    def __pow__(self, y):
+        if type(y) == int:
+            return Column(self.values ** y, self.index)
+        elif type(y) == float:
+            return Column(self.values ** y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values ** y, self.index)
+        elif type(y) == Column:
+            return Column(self.values ** y.values, self.index)
+
 
 class Table:
     """
-    Table is a class for fast columnar storage
+    Table is a class for fast columnar storage using a bitmap index for
+    sparse storage
     """
     @staticmethod
     def _check_length(i, k, this_length, length_last):
@@ -72,17 +84,19 @@ class Table:
 
         return length_last
 
-    def _index(self, k):
-        return self._index_store[self._indexes[k]]
+    def _index_column(self, key):
+        # This only works with OrderedDicts
+        for i, k in enumerate(self._data):
+            if key == k:
+                return self._index[i, :]
     
     def __init__(self, data={}):
         # This dictionary stores the columns
-        self._data = dict()
-        # This dictionary maps the column name with its index
-        self._indexes = {}
-        # This list stores the indexes
-        self._index_store = []
-
+        self._data = OrderedDict()
+        # This is the index bitmap
+        self._index = None
+        # This is the order of the table
+        self._order = None
         length_last = 0
 
         # Creating the table only supports assigning a single index
@@ -106,26 +120,28 @@ class Table:
             else:
                 raise ValueError("Column type not supported")
 
-            self._indexes[k] = 0
-
-        # The first index is also the primary index
-        self._index_store.append(np.arange(length_last))
+        # Create the index and the ordered arrays
+        self._index = np.ones((len(data), length_last), dtype=np.uint8)
+        self._order = np.arange(length_last)
             
     def __repr__(self):
-        return "<Table[ {} ] object at {}>".format(
-            ', '.join([
-                '{}[{}] <{}>'.format(
-                    k, len(self._index(k)), v.dtype
-                ) if type(v) == np.ndarray else '{}[{}] <object>'.format(
-                    k, len(self._index(k))) for k, v in self._data.items()]),
-            hex(id(self)))
+        column_info = list()
+        for k, v in self._data.items():
+            if type(v) == np.ndarray:
+                column_type = v.dtype
+            else:
+                column_type = 'object'        
+            count = np.count_nonzero(self._index_column(k))
+            column_info.append('{}[{}] <{}>'.format(k, count, column_type))
+            
+        return "<Table[ {} ] object at {}>".format(', '.join(column_info),hex(id(self)))
     
     def __getattr__(self, key):
-        return Column(self._data[key], self._index(key))
+        return Column(self._data[key], self._index_column(key))
 
     def hcat(self, k, v, index=None):
         """
-        Column concatenation.
+        Column concatenation. Resets the order.
         """
         if type(v) == list:
             self._data[k] = np.array(v)
@@ -142,74 +158,102 @@ class Table:
             raise ValueError("Column type not supported")
 
         if index is None:
-            # If the length of the value is the same as the first index,
-            # just use the first index
-            if len(v) == len(self._index_store[0]):
-                self._indexes[k] = 0
+            if len(v) > self._index.shape[1]:
+                self._index = np.concatenate(
+                    [self._index,
+                     np.zeros(
+                         (self._index.shape[0],
+                          len(v) - self._index.shape[1]),
+                         dtype=np.uint8)],
+                    axis=1
+                )
+                
+            # Concatenate the shape of the array to the bitmap
+            index_stride = np.zeros((1, self._index.shape[1]), dtype=np.uint8)
+            index_stride[:len(v)] = 1
+            self._index = np.concatenate([self._index, index_stride])
             
-            # The length of the index does not match the old index, so a
-            # new one is introduced
-            else:
-                new_index = len(self._index_store)
-                self._indexes[k] = new_index
-                self._index_store.append(np.arange(len(v)))
         else:
-            new_index = len(self._index_store)
-            self._indexes[k] = new_index
-            self._index_store.append(index)
+            # Handle the fact that the new column my be longer, so extend bitmap
+            if index.shape[0] > self._index.shape[1]:
+                self._index = np.concatenate(
+                    [self._index,
+                     np.zeros(
+                         (self._index.shape[0],
+                        index.shape[0] - self._index.shape[0]),
+                         dtype=np.uint8)],
+                    axis=1
+                )
+
+            # Concatenate the new column to the bitmap.
+            self._index = np.concatenate([self._index, np.atleast_2d(index)])
+
+        # Reset the order
+        self._order = np.arange(self._index.shape[1])
 
     def vcat(self, table):
-        """Vertical (Table) concatenation"""
-        if len(table._index_store) > 1:
-            raise ValueError("vcat only supported with single-index tables")
+        """Vertical (Table) concatenation. Resets the orfder"""
+        # First step is to rearrange the bitmap index if needed
+        joined_columns = set(chain(self._data, table._data))
+        hspill = len(joined_columns) - self._index.shape[0]
+        before_growth = self._index.shape
 
-        # Get the maximum length of all indexes within the table.
-        inserted_index = False
-        cursor = max(len(v) for v in self._index_store)
-        cat_index = table._index_store[0] + cursor
+        # Add the horizontal spill (more columns)
+        if joined_columns != set(self._data):
+            self._index = np.concatenate(
+                [self._index, np.zeros(
+                    (hspill, self._index.shape[1]), dtype=np.uint8
+                )])
 
-        for k, v in table._data.items():
-            if k in self._data:
-                self._data[k] = np.concatenate([self._data[k], v])
-                new_index = len(self._index_store)
-                if len(self._index(k)) < len(self._data[k]):
-                    self._index_store.append(
-                        np.concatenate([self._index(k),
-                                        cat_index])
+        # Add the vertical spill (the data)
+        self._index = np.concatenate(
+            [self._index, np.zeros(
+                (self._index.shape[0], table._index.shape[1]), dtype=np.uint8
+            )], axis=1)
+
+        # Include the keys present in both tables with this light nested loop.
+        for i, old_key in enumerate(self._data):
+            for j, new_key in enumerate(table._data):
+                if new_key == old_key:
+                    self._index[i, before_growth[1]:] = table._index[j, :]
+                    self._data[old_key] = np.concatenate(
+                        [self._data[old_key], table._data[new_key]]
                         )
-                    self._indexes[k] = new_index
-                    
-            elif not inserted_index:
-                self._data[k] = v
-                new_index = len(self._index_store)
-                self._indexes[k] = new_index
-                self._index_store.append(cat_index)
-                inserted_index = True
 
-            else:
-                self._data[k] = v
+        # Include keys that are not added in the previous table
+        new_cols_added = 0
+        for i, new_key in enumerate(table._data):
+            if new_key not in self._data:
+                self._index[before_growth[0] + new_cols_added,
+                            before_growth[1]:] = table._index[i, :]
+                self._data[new_key] = table._data[new_key]
+                new_cols_added += 1
+
+        # Reset the order
+        self._order = np.arange(self._index.shape[1]) 
+        
                 
-    def records(self):
+    def records(self, fill=False):
         """Generator that returns a dictionary for each row of the table"""
         # Infinite counter. SLOOOOOOW. This is columnar storage.
-        # Maybe reimplement in Cython for speed.
-        cursors = {k: 0 for k in self._data}
-        values = {k: self._index(k)[0] for k in self._data}
-        lengths = {k: len(self._index(k)) for k in self._data}
+        counters = np.zeros((self._index.shape[0]), dtype=np.int)
+        keys = np.array([k for k in self._data])
 
-        global_counter = 0
-        while sum(cursors.values()) < sum(lengths.values()):
-            keys_to_advance = [k for k, v in values.items() if global_counter == v]
-            yield {k: self._data[k][cursors[k]] for k in keys_to_advance}
-            
-            for k in keys_to_advance:
-                if cursors[k] < lengths[k] - 1:
-                    cursors[k] += 1
-                    values[k] = self._index(k)[cursors[k]]
-                else:
-                    cursors[k] += 1
-                    
-            global_counter += 1
+        for record in self._index.T[self._order]:
+            selected_keys = keys[np.where(record)]
+            selected_counters = counters[np.where(record)]
+            selected_values = list()
+            for k, c in zip(selected_keys, selected_counters):
+                selected_values.append(self._data[k][c])
+            counters[np.where(record)] += 1
+
+            if fill:
+                rec = {k: v for k, v in zip(selected_keys, selected_values)}
+                remaining = set(keys) - set(selected_keys)
+                rec.update({k: np.nan for k in remaining})
+                yield rec
+            else:
+                yield {k: v for k, v in zip(selected_keys, selected_values)}
 
     def __setattr__(self, key, value):
         if key.startswith('_'):
@@ -218,25 +262,26 @@ class Table:
             if type(value) == Column:
                 if key in self._data:
                     self._data[key] = value.values
-                    self._index_store[self._indexes[key]] = value.index
+                    self._index[self._index_column(key), :] = value.index
                 else:
-                    self._data[key] = value.values
-                    new_index = len(self._index_store)
-                    self._indexes[key] = new_index
-                    self._index_store.append(value.index)
+                    self.hcat(key, value.values, value.index)
 
             elif type(value) == np.ndarray:
                 if key in self._data:
-                    raise ValueError('Column assignment only with Column type')
-                else:
                     self._data[key] = value
-                    new_index = len(self._index_store)
-                    self._indexes[key] = new_index
-                    self._index_store.append(np.arange(len(value)))
+                else:
+                    self.hcat(key, value)
 
+    def to_pandas(self):
+        return pd.DataFrame.from_records(self.records())
+    
     @property
     def data(self):
         return self._data
+
+    @property
+    def index(self):
+        return self._index
             
 if __name__ == '__main__':
     t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
