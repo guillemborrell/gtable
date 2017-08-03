@@ -72,6 +72,15 @@ class Table:
     Table is a class for fast columnar storage using a bitmap index for
     sparse storage
     """
+    def copy(self):
+        t = Table()
+        t._data = OrderedDict([(k, v.copy()) for k, v in self._data.items()])
+        t._index = self._index.copy()
+        if self._order is not None:
+            t._order = self._order.copy()
+
+        return t
+    
     @staticmethod
     def _check_length(i, k, this_length, length_last):
         if i == 0:
@@ -146,7 +155,7 @@ class Table:
     
     def hcat(self, k, v, index=None):
         """
-        Column concatenation. Resets the order.
+        Column concatenation.
         """
         if k in self._data:
             raise KeyError("Key {} already present".format(k))
@@ -178,7 +187,7 @@ class Table:
                 
             # Concatenate the shape of the array to the bitmap
             index_stride = np.zeros((1, self._index.shape[1]), dtype=np.uint8)
-            index_stride[:len(v)] = 1
+            index_stride[0, :len(v)] = 1
             self._index = np.concatenate([self._index, index_stride])
             
         else:
@@ -198,12 +207,14 @@ class Table:
 
 
     def vcat(self, table):
-        """Vertical (Table) concatenation. Resets the orfder"""
+        """Vertical (Table) concatenation."""
         # First step is to rearrange the bitmap index if needed
         joined_columns = set(chain(self._data, table._data))
         hspill = len(joined_columns) - self._index.shape[0]
         before_growth = self._index.shape
 
+        tindex = table._index.copy()
+        
         # Add the horizontal spill (more columns)
         if joined_columns != set(self._data):
             self._index = np.concatenate(
@@ -214,14 +225,14 @@ class Table:
         # Add the vertical spill (the data)
         self._index = np.concatenate(
             [self._index, np.zeros(
-                (self._index.shape[0], table._index.shape[1]), dtype=np.uint8
+                (self._index.shape[0], tindex.shape[1]), dtype=np.uint8
             )], axis=1)
 
         # Include the keys present in both tables with this light nested loop.
         for i, old_key in enumerate(self._data):
             for j, new_key in enumerate(table._data):
                 if new_key == old_key:
-                    self._index[i, before_growth[1]:] = table._index[j, :]
+                    self._index[i, before_growth[1]:] = tindex[j, :]
                     self._data[old_key] = np.concatenate(
                         [self._data[old_key], table._data[new_key]]
                         )
@@ -231,7 +242,7 @@ class Table:
         for i, new_key in enumerate(table._data):
             if new_key not in self._data:
                 self._index[before_growth[0] + new_cols_added,
-                            before_growth[1]:] = table._index[i, :]
+                            before_growth[1]:] = tindex[i, :]
                 self._data[new_key] = table._data[new_key]
                 new_cols_added += 1
 

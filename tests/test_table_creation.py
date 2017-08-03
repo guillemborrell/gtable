@@ -92,3 +92,18 @@ def test_add_array():
     t = Table()
     t.a = np.arange(10)
     assert t.__repr__()[:13] == "<Table[ a[10]"
+
+def test_add_one():
+    tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=10),
+                'b': np.random.randn(10)})
+    tb.hcat('schedule', np.array(['first']))
+    assert np.all(tb._index == np.array([[1,1,1,1,1,1,1,1,1,1],
+                                         [1,1,1,1,1,1,1,1,1,1],
+                                         [1,0,0,0,0,0,0,0,0,0]]))
+    
+def test_vcat_heterogeneous():
+    tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=10),
+                'b': np.random.randn(10)})
+    tb.hcat('schedule', np.array(['first']))
+    tb.vcat(tb)
+    assert False
