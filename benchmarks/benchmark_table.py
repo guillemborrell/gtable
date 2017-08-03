@@ -11,7 +11,7 @@ class TimeSuite:
     def setup(self):
         self.small = np.arange(100)
         self.t = Table()
-        self.tlarge = self.t
+        self.tlarge = Table()
         self.tlarge.a = np.arange(1E6)
         self.tlarge.b = np.arange(1E6)
 
@@ -30,5 +30,12 @@ class TimeSuite:
 if __name__ == '__main__':
     t = TimeSuite()
     t.setup()
-    cProfile.runctx("t.time_setattr()", globals(), locals(), "gtable.prof")
+    pr = cProfile.Profile()
+    pr.enable()
+    t.time_setattr()
+    t.time_creation()
+    t.time_setattr_small()
+    t.time_mul_setattr()
+    pr.disable()
+    pr.print_stats(sort='time')
     
