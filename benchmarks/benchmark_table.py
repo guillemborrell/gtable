@@ -16,6 +16,8 @@ class TimeSuite:
         self.tlarge = Table()
         self.tlarge.a = np.arange(1E6)
         self.tlarge.b = np.arange(1E6)
+        self.df = pd.DataFrame({'a': np.arange(1E6), 'b': np.arange(1E6)})
+        self.df_small = pd.DataFrame({'a': np.arange(100), 'b': np.arange(100)})
 
     def time_base(self):
         pass
@@ -35,6 +37,13 @@ class TimeSuite:
     def time_mul_setattr(self):
         self.tlarge.c = self.tlarge.a + self.tlarge.b
 
+    def time_pandas_mul_setattr(self):
+        self.df.c = self.df.a + self.df.b
+
+    def time_pandas_mul_setattr_small(self):
+        self.df_small.c = self.df_small.a + self.df_small.b
+
+        
 if __name__ == '__main__':
     t = TimeSuite()
     t.setup()
