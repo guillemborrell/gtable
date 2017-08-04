@@ -3,6 +3,7 @@ import pandas as pd
 import sys
 from collections import OrderedDict
 from itertools import chain
+from numba import jit
 
 
 class Column:
@@ -66,7 +67,7 @@ class Column:
         elif type(y) == Column:
             return Column(self.values ** y.values, self.index)
 
-
+        
 class Table:
     """
     Table is a class for fast columnar storage using a bitmap index for
@@ -152,8 +153,8 @@ class Table:
     
     def __getattr__(self, key):
         return Column(self._data[key], self._index_column(key))
-    
-    def hcat(self, k, v, index=None):
+
+     def hcat(self, k, v, index=None):
         """
         Column concatenation.
         """
@@ -204,7 +205,6 @@ class Table:
 
             # Concatenate the new column to the bitmap.
             self._index = np.concatenate([self._index, np.atleast_2d(index)])
-
 
     def vcat(self, table):
         """Vertical (Table) concatenation."""

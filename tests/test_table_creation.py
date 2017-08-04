@@ -102,8 +102,13 @@ def test_add_one():
                                          [1,0,0,0,0,0,0,0,0,0]]))
     
 def test_vcat_heterogeneous():
-    tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=10),
-                'b': np.random.randn(10)})
+    tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=3),
+                'b': np.random.randn(3)})
     tb.hcat('schedule', np.array(['first']))
-    tb.vcat(tb)
-    assert False
+    tb1 = tb.copy()
+    tb1.schedule.values[0] = 'second'
+    tb.vcat(tb1)
+    assert np.all(tb._index == np.array([[1,1,1,1,1,1],
+                                         [1,1,1,1,1,1],
+                                         [1,0,0,1,0,0]], dtype=np.uint8))
+    assert np.all(tb.schedule.values == np.array(['first', 'secon']))

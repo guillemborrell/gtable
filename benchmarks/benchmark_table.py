@@ -65,7 +65,7 @@ if __name__ == '__main__':
     t = TimeSuite()
     t.setup()
     t.time_setattr()
-    t.time_creation()
     t.time_setattr_small()
+    t.time_mul_setattr_vsmall()
     t.time_mul_setattr()
     
