@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import sys
-from collections import OrderedDict
 from itertools import chain
 
 
@@ -121,20 +119,6 @@ class Table:
 
         # Create the index and the ordered arrays
         self._index = np.ones((len(data), length_last), dtype=np.uint8)
-        
-    def copy(self):
-        t = Table()
-        t._data = [d.copy() for d in self._data]
-        t._keys = self._keys[:]
-        t._index = self._index.copy()
-        
-        if self._order is not None:
-            t._order = self._order.copy()
-
-        return t
-    
-    def _index_column(self, key):
-        return self._index[self._keys.index(key), :]
 
     def __repr__(self):
         column_info = list()
@@ -157,6 +141,46 @@ class Table:
     def __setitem__(self, key, value):
         self._data[self._keys.index(key)] = value
 
+    def __setattr__(self, key, value):
+        if key.startswith('_'):
+            self.__dict__[key] = value
+        else:
+            if type(value) == Column:
+                if key in self._keys:
+                    self._data[self._keys.index(key)] = value.values
+                    self._index[self._keys.index(key), :] = value.index
+                else:
+                    self.hcat(key, value.values, value.index)
+
+            elif type(value) == np.ndarray:
+                if key in self._keys:
+                    self._data[self._keys.index(key)] = value
+                else:
+                    self.hcat(key, value)
+        
+    def _index_column(self, key):
+        return self._index[self._keys.index(key), :]
+        
+    def copy(self):
+        t = Table()
+        t._data = [d.copy() for d in self._data]
+        t._keys = self._keys[:]
+        t._index = self._index.copy()
+        
+        if self._order is not None:
+            t._order = self._order.copy()
+
+        return t
+
+    @property
+    def data(self):
+        return {k: v for k, v in zip(self._keys, self._data)}
+
+    @property
+    def index(self):
+        return self._index
+
+    
     def hcat(self, k, v, index=None):
         """
         Column concatenation.
@@ -176,7 +200,7 @@ class Table:
 
         elif type(v) == pd.DatetimeIndex:
             self._data.append(v)
-            self._data.append(k)
+            self._keys.append(k)
                 
         else:
             raise ValueError("Column type not supported")
@@ -298,31 +322,5 @@ class Table:
                 else:
                     yield {k: v for k, v in zip(selected_keys, selected_values)}
 
-
-    def __setattr__(self, key, value):
-        if key.startswith('_'):
-            self.__dict__[key] = value
-        else:
-            if type(value) == Column:
-                if key in self._keys:
-                    self._data[self._keys.index(key)] = value.values
-                    self._index[self._keys.index(key), :] = value.index
-                else:
-                    self.hcat(key, value.values, value.index)
-
-            elif type(value) == np.ndarray:
-                if key in self._keys:
-                    self._data[self._keys.index(key)] = value
-                else:
-                    self.hcat(key, value)
-
     def to_pandas(self):
         return pd.DataFrame.from_records(self.records())
-    
-    @property
-    def data(self):
-        return {k: v for k, v in zip(self._keys, self._data)}
-
-    @property
-    def index(self):
-        return self._index
