@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-with open('gtable/__init__.py') as f:
+with open('gtable/version.py') as f:
     exec(f.read())
 
 setup(name='gtable',

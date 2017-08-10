@@ -1,3 +1,3 @@
 from .table import Table, Column
+from .version import __version__
 
-__version__ = '0.1'
