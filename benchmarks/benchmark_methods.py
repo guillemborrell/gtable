@@ -1,5 +1,5 @@
 from gtable.fast import concatenate_float
-from gtable.methods import merge
+from gtable.methods import merge, sort
 from gtable import Table
 import numpy as np
 
@@ -19,4 +19,6 @@ class TimeSuite:
     def time_merge(self):
         merge(self.table_a, self.table_b, 'b')
         
-
+    def time_sort(self):
+        sort(self.table_a, 'a')
+        
