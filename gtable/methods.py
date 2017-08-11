@@ -5,7 +5,8 @@ from itertools import chain
 
 def merge(table_left, table_right, column):
     """
-    Merge two tables using a column as index
+    Merge two tables using a column as index. The order of the resulting
+    table is predictable if the column in both tables is sorted.
     """
     if column not in table_left._keys:
         raise ValueError('{} not in left table'.format(column))
@@ -46,9 +47,6 @@ def merge(table_left, table_right, column):
             right_key = table_right._keys.index(column)
             left_data[left_index.astype(np.bool)] = table_left._data[left_key]
             right_data[right_index.astype(np.bool)] = table_right._data[right_key]
-            print(table_left._data[left_key], table_right._data[right_key])
-            print(left_index, right_index)
-            print(left_data, right_data)
 
             merged = np.insert(left_data, insertions, right_data)
             new_data.append(merged[~np.isnan(merged)])
@@ -63,7 +61,7 @@ def merge(table_left, table_right, column):
 
         else:
             new_index[left_width + new_columns,:] = np.insert(
-                np.zeros((left_length), dype=np.uint8),
+                np.zeros((left_length), dtype=np.uint8),
                 insertions,
                 table_right._index[table_right._keys.index(column),:])
             new_columns += 1
@@ -76,3 +74,28 @@ def merge(table_left, table_right, column):
 
     return new_table
     
+
+def sort(table, column):
+    """
+    Sort the table inplace according to the elements of a column.
+    If the column does not span the entire table, the rows
+    not affected are left untouched.
+    """
+    if column not in table._keys:
+        raise ValueError('{} not in table'.format(column))
+
+    length = table._index.shape[1]
+    table_index = np.arange(length)
+    column_pos = table._keys.index(column)
+    column_index = table._index[column_pos,:]
+    filtered_index = table_index[column_index.astype(np.bool)]
+    sorted_subindex = np.argsort(table._data[column_pos])
+    table_index[filtered_index] = sorted_subindex
+    
+    # Now, with the complete table index, sort all the columns.
+    for idx in range(len(table._keys)):
+        column_index = table._index[idx,:]
+        column_subindex = np.cumsum(column_index) - 1
+        new_indexer = column_subindex[table_index][column_index.astype(np.bool)]
+        table._data[idx] = table._data[idx][new_indexer]
+        
