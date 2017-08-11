@@ -44,8 +44,11 @@ def merge(table_left, table_right, column):
             right_data = np.NAN * np.empty((right_length), dtype=np.uint8)
             left_key = table_left._keys.index(column)
             right_key = table_right._keys.index(column)
-            left_data[left_index] = table_left._data[left_key]
-            right_data[right_index] = table_right._data[right_key]
+            left_data[left_index.astype(np.bool)] = table_left._data[left_key]
+            right_data[right_index.astype(np.bool)] = table_right._data[right_key]
+            print(table_left._data[left_key], table_right._data[right_key])
+            print(left_index, right_index)
+            print(left_data, right_data)
 
             merged = np.insert(left_data, insertions, right_data)
             new_data.append(merged[~np.isnan(merged)])
@@ -70,5 +73,6 @@ def merge(table_left, table_right, column):
     new_table._data = new_data
     new_table._keys = all_columns
     new_table._index = new_index
-    print(new_table)
+
+    return new_table
     
