@@ -99,3 +99,4 @@ def sort(table, column):
         new_indexer = column_subindex[table_index][column_index.astype(np.bool)]
         table._data[idx] = table._data[idx][new_indexer]
         
+

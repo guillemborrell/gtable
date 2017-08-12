@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from itertools import chain
+from gtable.transformations import fillna
 
 
 class Column:
@@ -64,7 +65,13 @@ class Column:
         elif type(y) == Column:
             return Column(self.values ** y.values, self.index)
 
-
+    def fillna(self, reverse=False, fillvalue=None):
+        """
+        Fills the non available value sequentially with the previous
+        available position.
+        """
+        self.values, self.index = fillna(self.values, self.index, reverse, fillvalue)
+            
 def _check_length(i, k, this_length, length_last):
     if i == 0:
         length_last = this_length
@@ -110,7 +117,7 @@ class Table:
 
             # Pandas DatetimeIndex is supported for convenience.
             elif type(v) == pd.DatetimeIndex:
-                self._data.append(v)
+                self._data.append(np.array(v))
                 self._keys.append(k)
                 length_last = _check_length(i, k, v.shape[0], length_last)
                 
