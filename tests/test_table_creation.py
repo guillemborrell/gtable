@@ -31,18 +31,18 @@ def test_hcat_table():
 
 
 def test_vcat_table():
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
-    t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
+    t = Table({'a': [1, 2, 3], 'b': np.array([4,5,6])})
+    t1 = Table({'a': [1, 2, 3], 'd': np.array([4,5,6])})
     t.vcat(t1)
 
     assert np.all(t.index == np.array([[1, 1, 1, 1, 1, 1],
-                                       [1,1,1,0,0,0],
-                                       [0,0,0,1,1,1]], dtype=np.uint8))
+                                       [1, 1, 1, 0, 0, 0],
+                                       [0, 0, 0, 1, 1, 1]], dtype=np.uint8))
 
 
 def test_records():
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
-    t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
     t.vcat(t1)
 
     records = [r for r in t.records()]
@@ -67,8 +67,8 @@ def test_records():
 
     
 def test_compute_column():
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
-    t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
     t.vcat(t1)
 
     t.c = t.a + t.a/2
@@ -83,8 +83,8 @@ def test_compute_column():
 
 
 def test_compute_wrong_size():
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
-    t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
     t.vcat(t1)
 
     with pytest.raises(ValueError) as excinfo:
@@ -103,8 +103,8 @@ def test_add_one():
                 'b': np.random.randn(10)})
     tb.hcat('schedule', np.array(['first']))
     assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                        [1,1,1,1,1,1,1,1,1,1],
-                                        [1,0,0,0,0,0,0,0,0,0]]))
+                                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
 
 
 def test_vcat_heterogeneous():
@@ -115,6 +115,6 @@ def test_vcat_heterogeneous():
     tb1.schedule.values[0] = 'second'
     tb.vcat(tb1)
     assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1],
-                                        [1,1,1,1,1,1],
-                                        [1,0,0,1,0,0]], dtype=np.uint8))
+                                        [1, 1, 1, 1, 1, 1],
+                                        [1, 0, 0, 1, 0, 0]], dtype=np.uint8))
     assert np.all(tb.schedule.values == np.array(['first', 'secon']))
