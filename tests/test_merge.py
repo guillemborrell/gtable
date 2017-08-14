@@ -33,3 +33,37 @@ def test_merge_2():
         table_c.b.values == np.array(
             [-4, -1,  0,  0,  1,  1,  5,  3,  4,  2, 10, 20]
             ))
+
+
+def test_merge_3():
+    table_a = Table()
+    table_b = Table()
+
+    table_a.keys = ['a', 'b']
+    table_a.data = [
+        np.array([1, 2, 3]),
+        np.array([1, 2, 3])
+    ]
+    table_a.index = np.array(
+        np.array([
+            [0, 1, 1, 1, 0],
+            [0, 1, 1, 1, 0]
+        ], dtype=np.uint8)
+    )
+    table_b.keys = ['a', 'c']
+    table_b.data = [
+        np.array([1, 2, 3]),
+        np.array([1, 2, 3])
+    ]
+    table_b.index = np.array(
+        np.array([
+            [0, 1, 1, 1, 0],
+            [0, 1, 1, 1, 0]
+        ], dtype=np.uint8)
+    )
+    table_c = merge(table_a, table_b, 'a')
+
+    assert np.all(table_c.a.index == np.array([0, 1, 1, 1, 1, 1, 1, 0]))
+    assert np.all(table_c.c.index == np.array([0, 1, 0, 1, 0, 1, 0, 0]))
+    assert np.all(table_c.b.index == np.array([0, 0, 1, 0, 1, 0, 1, 0]))
+
