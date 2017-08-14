@@ -52,10 +52,14 @@ def merge_table(table_left, table_right, column):
         raise ValueError('{} not in right table'.format(column))
 
     column_left = table_left[column]
+    column_left_index = table_left.index[table_left.keys.index(column), :]
     column_right = table_right[column]
     sorter = np.argsort(column_left)
 
     insertions = np.searchsorted(column_left, column_right, sorter=sorter)
+    # This is a little tricky. This indices are for the insertions within
+    # each column of the index
+    insertions_index = np.searchsorted(column_left_index.cumsum(), insertions)
     all_columns = list(set(chain(table_left.keys, table_right.keys)))
     left_width = table_left.index.shape[0]
     left_length = table_left.index.shape[1]
@@ -71,7 +75,8 @@ def merge_table(table_left, table_right, column):
         if column in table_left.keys and column in table_right.keys:
             left_index = table_left.index[table_left.keys.index(column), :]
             right_index = table_right.index[table_right.keys.index(column), :]
-            merged_index = np.insert(left_index, insertions, right_index)
+            # Merge indices
+            merged_index = np.insert(left_index, insertions_index, right_index)
             new_index[existing_columns, :] = merged_index
             existing_columns += 1
 
@@ -92,15 +97,15 @@ def merge_table(table_left, table_right, column):
         elif column in table_left.keys:
             new_index[existing_columns, :] = np.insert(
                 table_left.index[table_left.keys.index(column), :],
-                insertions,
-                np.zeros(right_length, dtype=np.uint8))
+                insertions_index,
+                np.zeros(len(insertions_index), dtype=np.uint8))
             existing_columns += 1
             new_data.append(table_left.data[table_left.keys.index(column)])
 
         else:
             new_index[left_width + new_columns, :] = np.insert(
-                np.zeros(left_length, dtype=np.uint8),
-                insertions,
+                np.zeros(len(insertions_index), dtype=np.uint8),
+                insertions_index,
                 table_right.index[table_right.keys.index(column), :])
             new_columns += 1
             new_data.append(table_right.data[table_right.keys.index(column)])
