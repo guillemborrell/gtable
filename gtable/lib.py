@@ -83,11 +83,8 @@ def merge_table(table_left, table_right, column):
             right_key = table_right.keys.index(column)
             left_orig_data = table_left.data[left_key]
             right_orig_data = table_right.data[right_key]
-            left_dtype = left_orig_data.dtype
-            left_data = np.empty(left_length, dtype=left_dtype)
-            left_data[left_index.astype(np.bool)] = left_orig_data
-            merged = np.insert(left_data, insertions, right_orig_data)
-            new_data.append(merged[merged_index.astype(np.bool)])
+            merged = np.insert(left_orig_data, insertions, right_orig_data)
+            new_data.append(merged)
             new_keys.append(column)
 
         elif column in table_left.keys:
@@ -96,15 +93,16 @@ def merge_table(table_left, table_right, column):
                 table_left.index[left_key, :],
                 insertions_index,
                 np.zeros(len(insertions_index), dtype=np.uint8))
-            new_data.append(table_left.data[table_left.keys.index(column)])
+            new_data.append(table_left.data[left_key])
             new_keys.append(column)
 
         else:
+            right_key = table_right.keys.index(column)
             new_index[i, :] = np.insert(
                 np.zeros(left_length, dtype=np.uint8),
                 insertions_index,
                 np.ones(len(insertions_index), dtype=np.uint8))
-            new_data.append(table_right.data[table_right.keys.index(column)])
+            new_data.append(table_right.data[right_key])
             new_keys.append(column)
 
     return new_data, new_keys, new_index
