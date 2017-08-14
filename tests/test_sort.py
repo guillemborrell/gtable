@@ -1,6 +1,7 @@
-from gtable.methods import sort
+from gtable.lib import sort_table
 from gtable import Table
 import numpy as np
+
 
 def test_sort():
     a = [0,1,1,5,3,2]
@@ -10,7 +11,7 @@ def test_sort():
     # Concatenate another table to have one longer column
     table.vcat(Table({'b': [1,2,3,4]}))
 
-    sort(table, 'a')
+    sort_table(table, 'a')
     print(table.a.values)
     print(table.b.values)
 

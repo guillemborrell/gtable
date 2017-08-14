@@ -6,37 +6,39 @@ import pandas as pd
 
 def test_empty_table():
     t = Table()
-    assert t.data == {}
+    assert t.data == []
 
     
 def test_simple_table():
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
 
-    assert t.data['a'][2] == 3
-    assert np.all(t.index == np.ones((2,3), dtype=np.uint8))
+    assert t.to_dict()['a'][2] == 3
+    assert np.all(t.index == np.ones((2, 3), dtype=np.uint8))
 
     
 def test_hcat_table():
-    t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
-    t.hcat('c', [7,8,9])
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t.hcat('c', [7, 8, 9])
 
-    assert np.all(t._index == np.ones((3,3), dtype=np.uint8))
-    assert np.all(t.c.values == np.array([7,8,9]))
+    assert np.all(t.index == np.ones((3, 3), dtype=np.uint8))
+    assert np.all(t.c.values == np.array([7, 8, 9]))
 
-    t.hcat('d', [0,1,2,3,4])
-    assert np.all(t._index == np.array([[1,1,1,0,0],
-                                        [1,1,1,0,0],
-                                        [1,1,1,0,0],
-                                        [1,1,1,1,1]], dtype=np.uint8))
-    
+    t.hcat('d', [0, 1, 2, 3, 4])
+    assert np.all(t.index == np.array([[1, 1, 1, 0, 0],
+                                       [1, 1, 1, 0, 0],
+                                       [1, 1, 1, 0, 0],
+                                       [1, 1, 1, 1, 1]], dtype=np.uint8))
+
+
 def test_vcat_table():
     t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
     t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
     t.vcat(t1)
 
-    assert np.all(t._index == np.array([[1,1,1,1,1,1],
-                                        [1,1,1,0,0,0],
-                                        [0,0,0,1,1,1]], dtype=np.uint8))
+    assert np.all(t.index == np.array([[1, 1, 1, 1, 1, 1],
+                                       [1,1,1,0,0,0],
+                                       [0,0,0,1,1,1]], dtype=np.uint8))
+
 
 def test_records():
     t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
@@ -79,6 +81,7 @@ def test_compute_column():
         {'a': 2, 'd': 5, 'c': 3.0},
         {'a': 3, 'd': 6, 'c': 4.5}]
 
+
 def test_compute_wrong_size():
     t = Table({'a': [1,2,3], 'b': np.array([4,5,6])})
     t1 = Table({'a': [1,2,3], 'd': np.array([4,5,6])})
@@ -88,19 +91,22 @@ def test_compute_wrong_size():
         t.c = t.a + t.b/2
     assert 'broadcast together' in str(excinfo.value)
 
+
 def test_add_array():
     t = Table()
     t.a = np.arange(10)
     assert t.__repr__()[:13] == "<Table[ a[10]"
 
+
 def test_add_one():
     tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=10),
                 'b': np.random.randn(10)})
     tb.hcat('schedule', np.array(['first']))
-    assert np.all(tb._index == np.array([[1,1,1,1,1,1,1,1,1,1],
-                                         [1,1,1,1,1,1,1,1,1,1],
-                                         [1,0,0,0,0,0,0,0,0,0]]))
-    
+    assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                        [1,1,1,1,1,1,1,1,1,1],
+                                        [1,0,0,0,0,0,0,0,0,0]]))
+
+
 def test_vcat_heterogeneous():
     tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=3),
                 'b': np.random.randn(3)})
@@ -108,7 +114,7 @@ def test_vcat_heterogeneous():
     tb1 = tb.copy()
     tb1.schedule.values[0] = 'second'
     tb.vcat(tb1)
-    assert np.all(tb._index == np.array([[1,1,1,1,1,1],
-                                         [1,1,1,1,1,1],
-                                         [1,0,0,1,0,0]], dtype=np.uint8))
+    assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1],
+                                        [1,1,1,1,1,1],
+                                        [1,0,0,1,0,0]], dtype=np.uint8))
     assert np.all(tb.schedule.values == np.array(['first', 'secon']))

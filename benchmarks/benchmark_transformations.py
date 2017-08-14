@@ -5,11 +5,11 @@ import numpy as np
 class TimeSuite:
     def setup(self):
         t = Table()
-        t._keys=['a', 'b']
-        t._data=[
+        t.keys=['a', 'b']
+        t.data=[
             np.arange(10),
             np.array([1, 2])]
-        t._index = np.array(
+        t.index = np.array(
             [[1,1,1,1,1,1,1,1,1,1],
              [0,0,1,0,0,0,0,1,0,0]], dtype=np.uint8)
     
