@@ -1,4 +1,3 @@
-# from gtable.fast import concatenate_float
 from gtable.lib import merge_table, sort_table
 from gtable import Table
 import numpy as np
