@@ -18,12 +18,12 @@ def test_simple_table():
     
 def test_hcat_table():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
-    t.hcat('c', [7, 8, 9])
+    t.add_column('c', [7, 8, 9])
 
     assert np.all(t.index == np.ones((3, 3), dtype=np.uint8))
     assert np.all(t.c.values == np.array([7, 8, 9]))
 
-    t.hcat('d', [0, 1, 2, 3, 4])
+    t.add_column('d', [0, 1, 2, 3, 4])
     assert np.all(t.index == np.array([[1, 1, 1, 0, 0],
                                        [1, 1, 1, 0, 0],
                                        [1, 1, 1, 0, 0],
@@ -33,7 +33,7 @@ def test_hcat_table():
 def test_vcat_table():
     t = Table({'a': [1, 2, 3], 'b': np.array([4,5,6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4,5,6])})
-    t.vcat(t1)
+    t.stitch(t1)
 
     assert np.all(t.index == np.array([[1, 1, 1, 1, 1, 1],
                                        [1, 1, 1, 0, 0, 0],
@@ -43,7 +43,7 @@ def test_vcat_table():
 def test_records():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
-    t.vcat(t1)
+    t.stitch(t1)
 
     records = [r for r in t.records()]
 
@@ -59,7 +59,7 @@ def test_records():
 def test_compute_column():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
-    t.vcat(t1)
+    t.stitch(t1)
 
     t.c = t.a + t.a/2
     records = [r for r in t.records()]
@@ -75,7 +75,7 @@ def test_compute_column():
 def test_compute_wrong_size():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
-    t.vcat(t1)
+    t.stitch(t1)
 
     with pytest.raises(ValueError) as excinfo:
         t.c = t.a + t.b/2
@@ -91,7 +91,7 @@ def test_add_array():
 def test_add_one():
     tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=10),
                 'b': np.random.randn(10)})
-    tb.hcat('schedule', np.array(['first']))
+    tb.add_column('schedule', np.array(['first']))
     assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
@@ -100,10 +100,10 @@ def test_add_one():
 def test_vcat_heterogeneous():
     tb = Table({'a': pd.date_range('2000-01-01', freq='M', periods=3),
                 'b': np.random.randn(3)})
-    tb.hcat('schedule', np.array(['first']))
+    tb.add_column('schedule', np.array(['first']))
     tb1 = tb.copy()
     tb1.schedule.values[0] = 'second'
-    tb.vcat(tb1)
+    tb.stitch(tb1)
     assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1],
                                         [1, 1, 1, 1, 1, 1],
                                         [1, 0, 0, 1, 0, 0]], dtype=np.uint8))

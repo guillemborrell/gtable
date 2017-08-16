@@ -129,9 +129,17 @@ def sort_table(table, column):
     # Now, with the complete table index, sort all the columns.
     for idx in range(len(table.keys)):
         column_index = table.index[idx, :]
-        column_subindex = np.cumsum(column_index) - np.array(1)
-        new_indexer = column_subindex[table_index][column_index.astype(np.bool)]
-        table.data[idx] = table.data[idx][new_indexer]
+        column_data = table.data[idx]
+        if len(column_data) == len(table_index):
+            table.data[idx] = column_data[table_index]
+        else:
+            # Argsort twice gives the sorted index for a subset of
+            # a column.
+            new_indexer = np.argsort(
+                np.argsort(table_index[column_index.astype(np.bool)])
+            )
+            table.data[idx] = column_data[new_indexer]
+        table.index[idx, :] = table.index[idx][table_index]
 
 
 def records(table):
@@ -210,14 +218,15 @@ def stitch_table(left_table, right_table):
             new_cols_added += 1
             
             
-def add_column(table, k, v, index=None):
+def add_column(table, k, v, index=None, align='top'):
     """
     Adds a column to a table inplace
     
     :param table: 
     :param k: 
     :param v: 
-    :param index: 
+    :param index:
+    :param align:
     :return: 
     """
     if k in table.keys:
@@ -253,7 +262,13 @@ def add_column(table, k, v, index=None):
 
         # Concatenate the shape of the array to the bitmap
         index_stride = np.zeros((1, table.index.shape[1]), dtype=np.uint8)
-        index_stride[0, :len(v)] = 1
+        if align == 'top':
+            index_stride[0, :len(v)] = 1
+        elif align == 'bottom':
+            index_stride[0, -len(v):] = 1
+        else:
+            raise ValueError('Wrong alignment code')
+
         table.index = np.concatenate([table.index, index_stride])
 
     else:

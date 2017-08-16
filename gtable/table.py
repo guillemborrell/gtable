@@ -140,13 +140,13 @@ class Table:
 
         return t
 
-    def hcat(self, k, v, index=None):
+    def add_column(self, k, v, index=None, align='top'):
         """
         Column concatenation.
         """
-        add_column(self, k, v, index)
+        add_column(self, k, v, index, align=align)
 
-    def vcat(self, table):
+    def stitch(self, table):
         """Vertical (Table) concatenation."""
         stitch_table(self, table)
 
@@ -181,8 +181,8 @@ class Table:
                                                    hex(id(self)))
 
     @staticmethod
-    def __dir__(self):
-        return ['copy', 'hcat', 'vcat', 'merge', 'records', 'to_pandas',
+    def __dir__():
+        return ['copy', 'add_column', 'stitch', 'merge', 'records', 'to_pandas',
                 'to_dict']
     
     def __getattr__(self, key):
@@ -203,13 +203,13 @@ class Table:
                     self.data[self.keys.index(key)] = value.values
                     self.index[self.keys.index(key), :] = value.index
                 else:
-                    self.hcat(key, value.values, value.index)
+                    self.add_column(key, value.values, value.index)
 
             elif type(value) == np.ndarray:
                 if key in self.keys:
                     self.data[self.keys.index(key)] = value
                 else:
-                    self.hcat(key, value)
+                    self.add_column(key, value)
 
 
 
