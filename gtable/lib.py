@@ -302,7 +302,7 @@ def filter_table(table, predicate):
     new_data = list()
 
     # First step is to compute the new index by filtering twice:
-    new_index = table.index[:, predicate.index]
+    new_index = table.index[:, predicate.index.astype(np.bool)]
     new_index = new_index[:, predicate.values]
 
     # Now for the values
