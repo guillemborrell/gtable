@@ -1,5 +1,6 @@
 from itertools import chain
 import numpy as np
+import pandas as pd
 
 
 def fillna_column(values, index, reverse=False, fillvalue=None):
@@ -131,3 +132,141 @@ def sort_table(table, column):
         column_subindex = np.cumsum(column_index) - np.array(1)
         new_indexer = column_subindex[table_index][column_index.astype(np.bool)]
         table.data[idx] = table.data[idx][new_indexer]
+
+
+def records(table):
+    """
+    Generator. Returns a dictionary for every row of the table.
+    
+    :param table: a Table.
+    :return: Generator with each record as a dictionary
+    """
+    counters = np.zeros((table.index.shape[0]), dtype=np.int)
+    keys = np.array(table.keys)
+
+    for record in table.index.T:
+        selected_keys = keys[np.where(record)]
+        selected_counters = counters[np.where(record)]
+        selected_values = list()
+
+        for k, c in zip(selected_keys, selected_counters):
+            selected_values.append(table.data[table.keys.index(k)][c])
+        counters[np.where(record)] += 1
+
+        yield {k: v for k, v in zip(selected_keys, selected_values)}
+        
+
+def stitch_table(left_table, right_table):
+    """
+    Stitch a the right table to the bottom of the left table. Modifies
+    the left_table inplace.
+    
+    :param left_table: 
+    :param right_table: 
+    :return: 
+    """
+    # First step is to rearrange the bitmap index if needed
+    joined_columns = set(chain(left_table.keys, right_table.keys))
+    hspill = len(joined_columns) - left_table.index.shape[0]
+    before_growth = left_table.index.shape
+
+    tindex = right_table.index.copy()
+
+    # Add the horizontal spill (more columns)
+    if joined_columns != set(left_table.keys):
+        left_table.index = np.concatenate(
+            [left_table.index, np.zeros(
+                (hspill, left_table.index.shape[1]), dtype=np.uint8
+            )])
+
+    # Add the vertical spill (the data)
+    left_table.index = np.concatenate(
+        [left_table.index, np.zeros(
+            (left_table.index.shape[0], tindex.shape[1]), dtype=np.uint8
+        )], axis=1)
+
+    # Include the keys present in both tables with this light nested loop.
+    for old_key in left_table.keys:
+        for new_key in right_table.keys:
+            if new_key == old_key:
+                right_table_index = right_table.keys.index(new_key)
+                left_table_index = left_table.keys.index(old_key)
+                left_table.index[left_table.keys.index(old_key),
+                before_growth[1]:] = tindex[right_table_index, :]
+                left_table.data[left_table.keys.index(old_key)] = np.concatenate(
+                    [left_table.data[left_table_index],
+                     right_table.data[right_table_index]]
+                )
+
+    # Include keys that are not added in the previous table
+    new_cols_added = 0
+    for new_key in right_table.keys:
+        if new_key not in left_table.keys:
+            new_index = right_table.keys.index(new_key)
+            left_table.index[before_growth[0] + new_cols_added,
+                             before_growth[1]:] = tindex[new_index, :]
+            left_table.data.append(right_table.data[new_index])
+            left_table.keys.append(new_key)
+            new_cols_added += 1
+            
+            
+def add_column(table, k, v, index=None):
+    """
+    Adds a column to a table inplace
+    
+    :param table: 
+    :param k: 
+    :param v: 
+    :param index: 
+    :return: 
+    """
+    if k in table.keys:
+        raise KeyError("Key {} already present".format(k))
+
+    if type(v) == list:
+        table.data.append(np.array(v))
+        table.keys.append(k)
+
+    elif type(v) == np.ndarray:
+        if not len(v.shape) == 1:
+            raise ValueError("Only 1D arrays supported")
+        table.data.append(v)
+        table.keys.append(k)
+
+    elif type(v) == pd.DatetimeIndex:
+        table.data.append(v)
+        table.keys.append(k)
+
+    else:
+        raise ValueError("Column type not supported")
+
+    if index is None:
+        if len(v) > table.index.shape[1]:
+            table.index = np.concatenate(
+                [table.index,
+                 np.zeros(
+                     (table.index.shape[0],
+                      len(v) - table.index.shape[1]),
+                     dtype=np.uint8)],
+                axis=1
+            )
+
+        # Concatenate the shape of the array to the bitmap
+        index_stride = np.zeros((1, table.index.shape[1]), dtype=np.uint8)
+        index_stride[0, :len(v)] = 1
+        table.index = np.concatenate([table.index, index_stride])
+
+    else:
+        # Handle the fact that the new column my be longer, so extend bitmap
+        if index.shape[0] > table.index.shape[1]:
+            table.index = np.concatenate(
+                [table.index,
+                 np.zeros(
+                     (table.index.shape[0],
+                      index.shape[0] - table.index.shape[0]),
+                     dtype=np.uint8)],
+                axis=1
+            )
+
+        # Concatenate the new column to the bitmap.
+        table.index = np.concatenate([table.index, np.atleast_2d(index)])

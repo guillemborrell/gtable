@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from itertools import chain
-from gtable.lib import fillna_column
+from gtable.lib import fillna_column, records, stitch_table, add_column, merge_table
 
 
 class Column:
@@ -180,117 +179,18 @@ class Table:
         """
         Column concatenation.
         """
-        if k in self.keys:
-            raise KeyError("Key {} already present".format(k))
-
-        if type(v) == list:
-            self.data.append(np.array(v))
-            self.keys.append(k)
-                    
-        elif type(v) == np.ndarray:
-            if not len(v.shape) == 1:
-                raise ValueError("Only 1D arrays supported")
-            self.data.append(v)
-            self.keys.append(k)
-
-        elif type(v) == pd.DatetimeIndex:
-            self.data.append(v)
-            self.keys.append(k)
-                
-        else:
-            raise ValueError("Column type not supported")
-
-        if index is None:
-            if len(v) > self.index.shape[1]:
-                self.index = np.concatenate(
-                    [self.index,
-                     np.zeros(
-                         (self.index.shape[0],
-                          len(v) - self.index.shape[1]),
-                         dtype=np.uint8)],
-                    axis=1
-                )
-                
-            # Concatenate the shape of the array to the bitmap
-            index_stride = np.zeros((1, self.index.shape[1]), dtype=np.uint8)
-            index_stride[0, :len(v)] = 1
-            self.index = np.concatenate([self.index, index_stride])
-            
-        else:
-            # Handle the fact that the new column my be longer, so extend bitmap
-            if index.shape[0] > self.index.shape[1]:
-                self.index = np.concatenate(
-                    [self.index,
-                     np.zeros(
-                         (self.index.shape[0],
-                          index.shape[0] - self.index.shape[0]),
-                         dtype=np.uint8)],
-                    axis=1
-                )
-
-            # Concatenate the new column to the bitmap.
-            self.index = np.concatenate([self.index, np.atleast_2d(index)])
+        add_column(self, k, v, index)
 
     def vcat(self, table):
         """Vertical (Table) concatenation."""
-        # First step is to rearrange the bitmap index if needed
-        joined_columns = set(chain(self.keys, table.keys))
-        hspill = len(joined_columns) - self.index.shape[0]
-        before_growth = self.index.shape
+        stitch_table(self, table)
 
-        tindex = table.index.copy()
-        
-        # Add the horizontal spill (more columns)
-        if joined_columns != set(self.keys):
-            self.index = np.concatenate(
-                [self.index, np.zeros(
-                    (hspill, self.index.shape[1]), dtype=np.uint8
-                )])
-
-        # Add the vertical spill (the data)
-        self.index = np.concatenate(
-            [self.index, np.zeros(
-                (self.index.shape[0], tindex.shape[1]), dtype=np.uint8
-            )], axis=1)
-
-        # Include the keys present in both tables with this light nested loop.
-        for old_key in self.keys:
-            for new_key in table.keys:
-                if new_key == old_key:
-                    self.index[self.keys.index(old_key),
-                    before_growth[1]:] = tindex[
-                                    table.keys.index(new_key), :]
-                    self.data[self.keys.index(old_key)] = np.concatenate(
-                        [self.data[self.keys.index(old_key)],
-                         table.data[table.keys.index(new_key)]]
-                    )
-
-        # Include keys that are not added in the previous table
-        new_cols_added = 0
-        for new_key in table.keys:
-            if new_key not in self.keys:
-                self.index[before_growth[0] + new_cols_added,
-                before_growth[1]:] = tindex[
-                                table.keys.index(new_key), :]
-                self.data.append(table.data[table.keys.index(new_key)])
-                self.keys.append(new_key)
-                new_cols_added += 1
+    def merge(self, table, column):
+        self.data, self.keys, self.index = merge_table(table, self, column)
                 
     def records(self):
         """Generator that returns a dictionary for each row of the table"""
-        counters = np.zeros((self.index.shape[0]), dtype=np.int)
-        keys = np.array(self.keys)
-
-        for record in self.index.T:
-            selected_keys = keys[np.where(record)]
-            selected_counters = counters[np.where(record)]
-            selected_values = list()
-
-            for k, c in zip(selected_keys, selected_counters):
-                selected_values.append(self.data[self.keys.index(k)][c])
-            counters[np.where(record)] += 1
-
-            yield {k: v for k, v in zip(selected_keys, selected_values)}
+        yield from records(self)
 
     def to_pandas(self):
         return pd.DataFrame.from_records(self.records())

@@ -1,4 +1,3 @@
-from gtable.transformations import merge
 from gtable import Table
 import numpy as np
 
@@ -9,13 +8,13 @@ def test_merge_1():
     table_a = Table({'a': a, 'b': a})
     table_b = Table({'b': b})
     
-    table_c = merge(table_a, table_b, 'b')
+    table_a.merge(table_b, 'b')
     assert np.all(
-        table_c.b.values == np.array(
+        table_a.b.values == np.array(
             [0, 1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 12, 13, 14]
             ))
     assert np.all(
-        table_c.b.index == np.array(
+        table_a.b.index == np.array(
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
             ))
 
@@ -26,12 +25,12 @@ def test_merge_2():
     table_a = Table({'a': a, 'b': a})
     table_b = Table({'b': b, 'c': a})
     
-    table_c = merge(table_a, table_b, 'b')
+    table_a.merge(table_b, 'b')
 
-    print(table_c.b.values)
+    print(table_a.b.values)
     assert np.all(
-        table_c.b.values == np.array(
-            [-4, -1,  0,  0,  1,  1,  5,  3,  4,  2, 10, 20]
+        table_a.b.values == np.array(
+            [-4, -1, 0, 0, 1, 1, 3, 2, 4, 5, 10, 20]
             ))
 
 
@@ -61,9 +60,9 @@ def test_merge_3():
             [0, 1, 1, 1, 0]
         ], dtype=np.uint8)
     )
-    table_c = merge(table_a, table_b, 'a')
+    table_a.merge(table_b, 'a')
 
-    assert np.all(table_c.a.index == np.array([0, 1, 1, 1, 1, 1, 1, 0]))
-    assert np.all(table_c.c.index == np.array([0, 1, 0, 1, 0, 1, 0, 0]))
-    assert np.all(table_c.b.index == np.array([0, 0, 1, 0, 1, 0, 1, 0]))
+    assert np.all(table_a.a.index == np.array([0, 1, 1, 1, 1, 1, 1, 0]))
+    assert np.all(table_a.b.index == np.array([0, 1, 0, 1, 0, 1, 0, 0]))
+    assert np.all(table_a.c.index == np.array([0, 0, 1, 0, 1, 0, 1, 0]))
 
