@@ -46,7 +46,7 @@ def test_records():
     t.stitch(t1)
 
     records = [r for r in t.records()]
-
+    print(records)
     assert records == [
         {'a': 1, 'b': 4},
         {'a': 2, 'b': 5},

@@ -52,50 +52,44 @@ def merge_table(table_left, table_right, column):
     if column not in table_right.keys:
         raise ValueError('{} not in right table'.format(column))
 
-    column_left = table_left[column]
     left_key = table_left.keys.index(column)
-    column_left_index = table_left.index[left_key, :]
-    column_right = table_right[column]
     right_key = table_right.keys.index(column)
-    column_right_index = table_right.index[right_key, :]
-    sorter = np.argsort(column_left)
+    left_data = table_left[column]
+    right_data = table_right[column]
+    left_index = table_left.index[left_key, :]
+    right_index = table_right.index[right_key, :]
+    column_right = table_right[column]
 
-    if len(column_left_index) != len(table_left[column]):
+    sorter = np.argsort(left_data)
+
+    left_length = len(left_index)
+    right_length = len(right_index)
+    
+    if left_length != len(left_data):
         raise ValueError('Merge only with a dense column')
 
-    if len(column_right_index) != len(table_right[column]):
+    if right_length != len(right_data):
         raise ValueError('Merge only with a dense column')
 
-    insertions = np.searchsorted(column_left, column_right, sorter=sorter)
-    all_columns = set(chain(table_left.keys, table_right.keys))
-    left_length = table_left.index.shape[1]
+    insertions = np.searchsorted(left_data, right_data, sorter=sorter)
+    all_columns = set(chain(table_left.keys, table_right.keys))       
     width = len(all_columns)
-    length = table_left.index.shape[1] + table_right.index.shape[1]
+    length = left_length + right_length
+
     new_index = np.empty((width, length), dtype=np.uint8)
     new_data = list()
     new_keys = list()
 
     for i, column in enumerate(all_columns):
         if column in table_left.keys and column in table_right.keys:
-            left_index = table_left.index[table_left.keys.index(column), :]
-            right_index = table_right.index[table_right.keys.index(column), :]
-            # Merge indices
-            merged_index = np.insert(left_index, insertions, right_index)
-            new_index[i, :] = merged_index
+            new_index[i, :] = np.ones(length, dtype=np.uint8)
 
             # If the column is present in both tables, data must be merged
             left_key = table_left.keys.index(column)
             right_key = table_right.keys.index(column)
             left_orig_data = table_left.data[left_key]
             right_orig_data = table_right.data[right_key]
-            if len(insertions) == len(right_orig_data):
-                merged = np.insert(left_orig_data, insertions, right_orig_data)
-            else:
-                merged = np.insert(
-                    left_orig_data,
-                    np.argsort(np.argsort(
-                        insertions[right_index.astype(np.bool)])),
-                    right_orig_data)
+            merged = np.insert(left_orig_data, insertions, right_orig_data)
 
             new_data.append(merged)
             new_keys.append(column)
@@ -166,12 +160,11 @@ def records(table):
         selected_keys = keys[np.where(record)]
         selected_counters = counters[np.where(record)]
         selected_values = list()
-
-        for k, c in zip(selected_keys, selected_counters):
-            selected_values.append(table.data[table.keys.index(k)][c])
+        record_data = {k: table.data[table.keys.index(k)][c] \
+                  for k, c in zip(selected_keys, selected_counters)}
         counters[np.where(record)] += 1
 
-        yield {k: v for k, v in zip(selected_keys, selected_values)}
+        yield record_data
         
 
 def stitch_table(left_table, right_table):
