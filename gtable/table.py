@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from gtable.lib import fillna_column, records, stitch_table, add_column,\
-    merge_table, sort_table
+    merge_table, sort_table, filter_table
 
 
 class Column:
@@ -16,24 +16,28 @@ class Column:
         return "<Column[ {} ] object at {}>".format(self.values.dtype, hex(id(self)))
 
     def __add__(self, y):
-        if type(y) == int:
-            return Column(self.values + y, self.index)
-        elif type(y) == float:
-            return Column(self.values + y, self.index)
-        elif type(y) == np.ndarray:
+        if type(y) == np.ndarray:
             return Column(self.values + y, self.index)
         elif type(y) == Column:
             return Column(self.values + y.values, self.index)
+        elif type(y) == int:
+            return Column(self.values + y, self.index)
+        elif type(y) == float:
+            return Column(self.values + y, self.index)
+        else:
+            raise ValueError('Type not supported')
 
     def __sub__(self, y):
-        if type(y) == int:
-            return Column(self.values - y, self.index)
-        elif type(y) == float:
-            return Column(self.values - y, self.index)
-        elif type(y) == np.ndarray:
+        if type(y) == np.ndarray:
             return Column(self.values - y, self.index)
         elif type(y) == Column:
             return Column(self.values - y.values, self.index)
+        elif type(y) == int:
+            return Column(self.values - y, self.index)
+        elif type(y) == float:
+            return Column(self.values - y, self.index)
+        else:
+            raise ValueError('Type not supported')
     
     def __mul__(self, y):
         if type(y) == int:
@@ -136,6 +140,8 @@ class Column:
             return Column(self.values >= y.values, self.index)
 
     def __eq__(self, y):
+        if type(y) == str:
+            return Column(self.values == y, self.index)
         if type(y) == int:
             return Column(self.values == y, self.index)
         elif type(y) == float:
@@ -253,6 +259,11 @@ class Table:
     def sort_by(self, column):
         """Sorts by values of a column"""
         sort_table(self, column)
+
+    def filter(self, predicate):
+        t = Table()
+        t.data, t.keys, t.index = filter_table(self, predicate)
+        return t
 
     def to_pandas(self):
         return pd.DataFrame.from_records(self.records())

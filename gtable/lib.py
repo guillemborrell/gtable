@@ -295,3 +295,22 @@ def add_column(table, k, v, index=None, align='top'):
 
         # Concatenate the new column to the bitmap.
         table.index = np.concatenate([table.index, np.atleast_2d(index)])
+
+
+def filter_table(table, predicate):
+    new_keys = table.keys
+    new_data = list()
+
+    # First step is to compute the new index by filtering twice:
+    new_index = table.index[:, predicate.index]
+    new_index = table.index[:, predicate.values]
+
+    # Now for the values
+    for column, index in zip(table.data, table.index):
+        enumerator = index.cumsum() - np.array(1)
+        new_data.append(
+            column[enumerator[index.astype(np.bool)][
+                predicate.values.astype(np.bool)]]
+        )
+
+    return new_data, new_keys, new_index
