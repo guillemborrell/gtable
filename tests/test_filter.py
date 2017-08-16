@@ -9,7 +9,7 @@ def test_filter_1():
         table_a.filter(table_a.a > 5).a.values == np.array([6, 7, 8, 9]))
 
 
-def test_filter_1():
+def test_filter_2():
     a = np.arange(10, dtype=np.double)
     table_a = Table({'a': a, 'b': a})
     assert np.all(
