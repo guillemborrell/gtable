@@ -303,7 +303,7 @@ def filter_table(table, predicate):
 
     # First step is to compute the new index by filtering twice:
     new_index = table.index[:, predicate.index]
-    new_index = table.index[:, predicate.values]
+    new_index = new_index[:, predicate.values]
 
     # Now for the values
     for column, index in zip(table.data, table.index):
