@@ -5,14 +5,13 @@ import numpy as np
 class TimeSuite:
     def setup(self):
         t = Table()
-        t.keys=['a', 'b']
-        t.data=[
+        t.keys = ['a', 'b']
+        t.data = [
             np.arange(10),
             np.array([1, 2])]
         t.index = np.array(
-            [[1,1,1,1,1,1,1,1,1,1],
-             [0,0,1,0,0,0,0,1,0,0]], dtype=np.uint8)
-    
+            [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+             [0, 0, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=np.uint8)
         self.b = t.b
 
     def time_fillna(self):
@@ -26,5 +25,3 @@ class TimeSuite:
         
     def time_fillna_reverse_fillvalue(self):
         self.b.fillna(reverse=True, fillvalue=-1)
-        
-        
