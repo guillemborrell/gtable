@@ -44,8 +44,8 @@ def test_merge_3():
     ]
     table_a.index = np.array(
         np.array([
-            [0, 1, 1, 1, 0],
-            [0, 1, 1, 1, 0]
+            [1, 1, 1],
+            [1, 1, 1]
         ], dtype=np.uint8)
     )
     table_b.keys = ['a', 'c']
@@ -55,13 +55,14 @@ def test_merge_3():
     ]
     table_b.index = np.array(
         np.array([
-            [0, 1, 1, 1, 0],
-            [0, 1, 1, 1, 0]
+            [1, 1, 1],
+            [1, 1, 1]
         ], dtype=np.uint8)
     )
     table_a.merge(table_b, 'a')
 
-    assert np.all(table_a.a.index == np.array([0, 1, 1, 1, 1, 1, 1, 0]))
-    assert np.all(table_a.b.index == np.array([0, 1, 0, 1, 0, 1, 0, 0]))
-    assert np.all(table_a.c.index == np.array([0, 0, 1, 0, 1, 0, 1, 0]))
+    print(table_a.index)
+    assert np.all(table_a.a.index == np.array([1, 1, 1, 1, 1, 1]))
+    assert np.all(table_a.b.index == np.array([1, 0, 1, 0, 1, 0]))
+    assert np.all(table_a.c.index == np.array([0, 1, 0, 1, 0, 1]))
 

@@ -65,12 +65,105 @@ class Column:
         elif type(y) == Column:
             return Column(self.values ** y.values, self.index)
 
+    def __and__(self, y):
+        if type(y) == int:
+            return Column(self.values & y, self.index)
+        elif type(y) == float:
+            return Column(self.values & y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(np.bitwise_and(self.values, y), self.index)
+        elif type(y) == Column:
+            return Column(np.bitwise_and(self.values, y.values), self.index)
+
+    def __or__(self, y):
+        if type(y) == int:
+            return Column(self.values | y, self.index)
+        elif type(y) == float:
+            return Column(self.values | y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(np.bitwise_or(self.values, y), self.index)
+        elif type(y) == Column:
+            return Column(np.bitwise_or(self.values, y.values), self.index)
+
+    def __xor__(self, y):
+        if type(y) == int:
+            return Column(self.values ^ y, self.index)
+        elif type(y) == float:
+            return Column(self.values ^ y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(np.bitwise_xor(self.values, y), self.index)
+        elif type(y) == Column:
+            return Column(np.bitwise_xor(self.values, y.values), self.index)
+
+    def __lt__(self, y):
+        if type(y) == int:
+            return Column(self.values < y, self.index)
+        elif type(y) == float:
+            return Column(self.values < y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values < y, self.index)
+        elif type(y) == Column:
+            return Column(self.values < y.values, self.index)
+
+    def __le__(self, y):
+        if type(y) == int:
+            return Column(self.values <= y, self.index)
+        elif type(y) == float:
+            return Column(self.values <= y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values <= y, self.index)
+        elif type(y) == Column:
+            return Column(self.values <= y.values, self.index)
+
+    def __gt__(self, y):
+        if type(y) == int:
+            return Column(self.values > y, self.index)
+        elif type(y) == float:
+            return Column(self.values > y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values > y, self.index)
+        elif type(y) == Column:
+            return Column(self.values > y.values, self.index)
+
+    def __ge__(self, y):
+        if type(y) == int:
+            return Column(self.values >= y, self.index)
+        elif type(y) == float:
+            return Column(self.values >= y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values >= y, self.index)
+        elif type(y) == Column:
+            return Column(self.values >= y.values, self.index)
+
+    def __eq__(self, y):
+        if type(y) == int:
+            return Column(self.values == y, self.index)
+        elif type(y) == float:
+            return Column(self.values == y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values == y, self.index)
+        elif type(y) == Column:
+            return Column(self.values == y.values, self.index)
+
+    def __ne__(self, y):
+        if type(y) == int:
+            return Column(self.values != y, self.index)
+        elif type(y) == float:
+            return Column(self.values != y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values != y, self.index)
+        elif type(y) == Column:
+            return Column(self.values != y.values, self.index)
+
     def fillna(self, reverse=False, fillvalue=None):
         """
         Fills the non available value sequentially with the previous
         available position.
         """
-        self.values, self.index = fillna_column(self.values, self.index, reverse, fillvalue)
+        self.values, self.index = fillna_column(self.values,
+                                                self.index,
+                                                reverse,
+                                                fillvalue)
 
 
 def _check_length(i, k, this_length, length_last):
@@ -116,7 +209,7 @@ class Table:
 
             # Pandas DatetimeIndex is supported for convenience.
             elif type(v) == pd.DatetimeIndex:
-                self.data.append(np.array(v))
+                self.data.append(v.values)
                 self.keys.append(k)
                 length_last = _check_length(i, k, v.shape[0], length_last)
                 
@@ -211,5 +304,9 @@ class Table:
                 else:
                     self.add_column(key, value)
 
-
+            elif type(value) == pd.DatetimeIndex:
+                if key in self.keys:
+                    self.data[self.keys.index(key)] = value.values
+                else:
+                    self.add_column(key, value)
 

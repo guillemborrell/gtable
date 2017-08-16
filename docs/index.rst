@@ -6,6 +6,9 @@
 Welcome to gtable's documentation!
 ==================================
 
+Gtable is a container for tabular or tabular-like data designed with speed in
+mind
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
