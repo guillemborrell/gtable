@@ -276,9 +276,8 @@ class Table:
                 self.keys.append(new_key)
                 new_cols_added += 1
                 
-    def records(self, fill=False):
+    def records(self):
         """Generator that returns a dictionary for each row of the table"""
-        # Infinite counter. SLOOOOOOW. This is columnar storage.
         counters = np.zeros((self.index.shape[0]), dtype=np.int)
         keys = np.array(self.keys)
 
@@ -291,13 +290,7 @@ class Table:
                 selected_values.append(self.data[self.keys.index(k)][c])
             counters[np.where(record)] += 1
 
-            if fill:
-                rec = {k: v for k, v in zip(selected_keys, selected_values)}
-                remaining = set(keys) - set(selected_keys)
-                rec.update({k: np.nan for k in remaining})
-                yield rec
-            else:
-                yield {k: v for k, v in zip(selected_keys, selected_values)}
+            yield {k: v for k, v in zip(selected_keys, selected_values)}
 
     def to_pandas(self):
         return pd.DataFrame.from_records(self.records())

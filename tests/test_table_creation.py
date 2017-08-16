@@ -55,16 +55,6 @@ def test_records():
         {'a': 2, 'd': 5},
         {'a': 3, 'd': 6}]
 
-    records = [r for r in t.records(fill=True)]
-
-    assert records == [
-        {'a': 1, 'b': 4, 'd': np.nan},
-        {'a': 2, 'b': 5, 'd': np.nan},
-        {'a': 3, 'b': 6, 'd': np.nan},
-        {'a': 1, 'b': np.nan, 'd': 4},
-        {'a': 2, 'b': np.nan, 'd': 5},
-        {'a': 3, 'b': np.nan, 'd': 6}]
-
     
 def test_compute_column():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
