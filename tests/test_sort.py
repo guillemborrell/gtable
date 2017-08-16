@@ -12,8 +12,6 @@ def test_sort():
     table.vcat(Table({'b': [1, 2, 3, 4]}))
 
     sort_table(table, 'a')
-    print(table.a.values)
-    print(table.b.values)
 
     assert np.all(table.a.values == np.array([0, 1, 1, 2, 3, 5]))
     assert np.all(table.b.values == np.array(

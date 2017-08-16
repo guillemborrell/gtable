@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from gtable.lib import fillna_column, records, stitch_table, add_column, merge_table
+from gtable.lib import fillna_column, records, stitch_table, add_column,\
+    merge_table, sort_table
 
 
 class Column:
@@ -125,16 +126,16 @@ class Table:
         # Create the index and the ordered arrays
         self.index = np.ones((len(data), length_last), dtype=np.uint8)
 
-    def __repr__(self):
+    def __unicode__(self):
         column_info = list()
         for k, v in zip(self.keys, self.data):
             if type(v) == np.ndarray:
                 column_type = v.dtype
             else:
-                column_type = 'object'        
+                column_type = 'object'
             count = np.count_nonzero(self._index_column(k))
             column_info.append('{}[{}] <{}>'.format(k, count, column_type))
-            
+
         return "<Table[ {} ] object at {}>".format(', '.join(column_info),
                                                    hex(id(self)))
     
@@ -163,7 +164,12 @@ class Table:
                     self.data[self.keys.index(key)] = value
                 else:
                     self.hcat(key, value)
-        
+
+    @staticmethod
+    def __dir__(self):
+        return ['copy', 'hcat', 'vcat', 'merge', 'records', 'to_pandas',
+                'to_dict']
+
     def _index_column(self, key):
         return self.index[self.keys.index(key), :]
         
@@ -192,8 +198,15 @@ class Table:
         """Generator that returns a dictionary for each row of the table"""
         yield from records(self)
 
+    def sort_by(self, column):
+        """Sorts by values of a column"""
+        sort_table(self, column)
+
     def to_pandas(self):
         return pd.DataFrame.from_records(self.records())
 
     def to_dict(self):
         return {k: v for k, v in zip(self.keys, self.data)}
+
+    def _repr_html_(self):
+        return "<i>xxx</i>"

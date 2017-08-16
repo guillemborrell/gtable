@@ -27,7 +27,6 @@ def test_merge_2():
     
     table_a.merge(table_b, 'b')
 
-    print(table_a.b.values)
     assert np.all(
         table_a.b.values == np.array(
             [-4, -1, 0, 0, 1, 1, 3, 2, 4, 5, 10, 20]
