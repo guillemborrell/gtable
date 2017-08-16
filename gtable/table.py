@@ -126,7 +126,48 @@ class Table:
         # Create the index and the ordered arrays
         self.index = np.ones((len(data), length_last), dtype=np.uint8)
 
-    def __unicode__(self):
+    def _repr_html_(self):
+        return "<i>xxx</i>"
+
+    def _index_column(self, key):
+        return self.index[self.keys.index(key), :]
+
+    def copy(self):
+        t = Table()
+        t.data = [d.copy() for d in self.data]
+        t.keys = self.keys[:]
+        t.index = self.index.copy()
+
+        return t
+
+    def hcat(self, k, v, index=None):
+        """
+        Column concatenation.
+        """
+        add_column(self, k, v, index)
+
+    def vcat(self, table):
+        """Vertical (Table) concatenation."""
+        stitch_table(self, table)
+
+    def merge(self, table, column):
+        self.data, self.keys, self.index = merge_table(table, self, column)
+
+    def records(self):
+        """Generator that returns a dictionary for each row of the table"""
+        yield from records(self)
+
+    def sort_by(self, column):
+        """Sorts by values of a column"""
+        sort_table(self, column)
+
+    def to_pandas(self):
+        return pd.DataFrame.from_records(self.records())
+
+    def to_dict(self):
+        return {k: v for k, v in zip(self.keys, self.data)}
+
+    def __repr__(self):
         column_info = list()
         for k, v in zip(self.keys, self.data):
             if type(v) == np.ndarray:
@@ -138,6 +179,11 @@ class Table:
 
         return "<Table[ {} ] object at {}>".format(', '.join(column_info),
                                                    hex(id(self)))
+
+    @staticmethod
+    def __dir__(self):
+        return ['copy', 'hcat', 'vcat', 'merge', 'records', 'to_pandas',
+                'to_dict']
     
     def __getattr__(self, key):
         return Column(self.data[self.keys.index(key)], self._index_column(key))
@@ -165,48 +211,5 @@ class Table:
                 else:
                     self.hcat(key, value)
 
-    @staticmethod
-    def __dir__(self):
-        return ['copy', 'hcat', 'vcat', 'merge', 'records', 'to_pandas',
-                'to_dict']
 
-    def _index_column(self, key):
-        return self.index[self.keys.index(key), :]
-        
-    def copy(self):
-        t = Table()
-        t.data = [d.copy() for d in self.data]
-        t.keys = self.keys[:]
-        t.index = self.index.copy()
 
-        return t
-
-    def hcat(self, k, v, index=None):
-        """
-        Column concatenation.
-        """
-        add_column(self, k, v, index)
-
-    def vcat(self, table):
-        """Vertical (Table) concatenation."""
-        stitch_table(self, table)
-
-    def merge(self, table, column):
-        self.data, self.keys, self.index = merge_table(table, self, column)
-                
-    def records(self):
-        """Generator that returns a dictionary for each row of the table"""
-        yield from records(self)
-
-    def sort_by(self, column):
-        """Sorts by values of a column"""
-        sort_table(self, column)
-
-    def to_pandas(self):
-        return pd.DataFrame.from_records(self.records())
-
-    def to_dict(self):
-        return {k: v for k, v in zip(self.keys, self.data)}
-
-    def _repr_html_(self):
-        return "<i>xxx</i>"
