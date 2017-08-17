@@ -287,9 +287,9 @@ class Table:
         """Merge two tables using two dense and sorted columns"""
         self.data, self.keys, self.index = merge_table(table, self, column)
 
-    def records(self):
+    def records(self, fill=False):
         """Generator that returns a dictionary for each row of the table"""
-        yield from records(self)
+        yield from records(self, fill)
 
     def sort_by(self, column):
         """Sorts by values of a column"""
@@ -301,9 +301,9 @@ class Table:
         t.data, t.keys, t.index = filter_table(self, predicate)
         return t
 
-    def to_pandas(self):
+    def to_pandas(self, fill=False):
         """Translate the table to a pandas dataframe"""
-        return pd.DataFrame.from_records(self.records())
+        return pd.DataFrame.from_records(self.records(fill))
 
     def to_dict(self):
         """Translate the table to a dict {key -> array_of_values}"""

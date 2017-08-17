@@ -145,11 +145,12 @@ def sort_table(table, column):
         table.index[idx, :] = table.index[idx][table_index]
 
 
-def records(table):
+def records(table, fill=False):
     """
     Generator. Returns a dictionary for every row of the table.
     
     :param table: a Table.
+    :param fill: True if empty values have to be replaced with NaN
     :return: Generator with each record as a dictionary
     """
     counters = np.zeros((table.index.shape[0]), dtype=np.int)
@@ -158,8 +159,14 @@ def records(table):
     for record in table.index.T:
         selected_keys = keys[np.where(record)]
         selected_counters = counters[np.where(record)]
-        record_data = {k: table.data[table.keys.index(k)][c]
-                       for k, c in zip(selected_keys, selected_counters)}
+        if fill:
+            record_data = {k: table.data[table.keys.index(k)][c]
+                           for k, c in zip(selected_keys, selected_counters)}
+            record_data.update({k: np.nan for k in keys
+                                if k not in selected_keys})
+        else:
+            record_data = {k: table.data[table.keys.index(k)][c]
+                           for k, c in zip(selected_keys, selected_counters)}
         counters[np.where(record)] += 1
 
         yield record_data
@@ -292,16 +299,18 @@ def filter_table(table, predicate):
     new_keys = table.keys
     new_data = list()
 
+    crop_index = predicate.index.astype(np.bool)
+    crop_value = predicate.values.astype(np.bool)
+
     # First step is to compute the new index by filtering twice:
-    new_index = table.index[:, predicate.index.astype(np.bool)]
-    new_index = new_index[:, predicate.values]
+    new_index = table.index[:, crop_index]
+    new_index = new_index[:, crop_value]
 
     # Now for the values
     for column, index in zip(table.data, table.index):
         enumerator = index.astype(np.int).cumsum() - np.array(1)
-        filtered_column = column[enumerator[predicate.index.astype(np.bool)][
-                predicate.values.astype(np.bool)]]
-        cleaner = (enumerator >= 0)[predicate.index.astype(np.bool)]
+        filtered_column = column[enumerator[crop_index][crop_value]]
+        cleaner = (enumerator >= 0)[crop_index][crop_value]
         new_data.append(filtered_column[cleaner])
 
     return new_data, new_keys, new_index
