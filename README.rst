@@ -20,4 +20,6 @@ computations:
 It also relies heavily on `numpy <http://www.numpy.org>`_. You can consider
 gtable as a thin layer over numpy arrays.
 
-Gtable is an open-source project released under a BSD 3-Clause license.
+Gtable is an open-source project released under a BSD 3-Clause license. You
+can read the full documentation
+`here <https://readthedocs.org/projects/gtable/>`_.
