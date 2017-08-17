@@ -112,12 +112,12 @@ Dataframe is a very convenient container because it always does
 something that makes sense, therefore you have to code very little. For
 instance, take the ``join`` method of a dataframe. It does just what it
 has to do, and it is definitely not trivial. Unfortunately, that
-overhead is too much for us.
+overhead is too much for some use cases.
 
 We are in the typical situation where abstractions are not for free. The
 higher the level, the slower the computation. This is a kind of a
 *second law of Thermodynamics* applied to numerical computing. And there
-are abstractions that are tremendously useful to **us**. A Dataframe is
+are abstractions that are tremendously useful. A Dataframe is
 not a dictionary of arrays. It can be indexed by row and by column, and
 it can operate as a whole, and on any imaginable portion of it. It can
 sort, group, joing, merge... You name it. But if you want to compute the
@@ -163,8 +163,8 @@ overhead. Let's see how well it does with smaller arrays
     8.51 µs ± 437 ns per loop (mean ± std. dev. of 7 runs, 100000 loops each)
 
 
-We have improved by a factor of 7, which is crucial if that's the
-difference between running in one or seven servers. We can still improve
+We have improved by a factor of 10, which is crucial if that's the
+difference between running in one or ten servers. We can still improve
 the computation by a little bit more if we fallback into some kind of *I
 know what I am doing* mode, and we want to reuse memory to avoid
 allocations:
@@ -184,11 +184,10 @@ Now the performance of arithmetic operations with gtable is closer to
 operate with plain arrays to the overhead-driven performance of Pandas.
 You can seriously break the table if you really don't know what you are
 doing. But for obvious reasons, having this kind of performance tricks
-is key to us.
+is sometimes neessary.
 
 Of course, these speedups come at a cost: features. Gtable is in its
-infancy. There are literally two afternoons of work on it, and the whole
-module fits within a single file with less than 300 lines of code. It is
+infancy. It is a small module that one can hack easily. It is
 pure python, and I have not started to seriously tune its performance.
 But the idea of having something inbetween a Dataframe and a dictionary
 of arrays with support for sparse information is appealing to say the
