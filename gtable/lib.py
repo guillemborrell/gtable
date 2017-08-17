@@ -58,7 +58,6 @@ def merge_table(table_left, table_right, column):
     right_data = table_right[column]
     left_index = table_left.index[left_key, :]
     right_index = table_right.index[right_key, :]
-    column_right = table_right[column]
 
     sorter = np.argsort(left_data)
 
@@ -159,9 +158,8 @@ def records(table):
     for record in table.index.T:
         selected_keys = keys[np.where(record)]
         selected_counters = counters[np.where(record)]
-        selected_values = list()
-        record_data = {k: table.data[table.keys.index(k)][c] \
-                  for k, c in zip(selected_keys, selected_counters)}
+        record_data = {k: table.data[table.keys.index(k)][c]
+                       for k, c in zip(selected_keys, selected_counters)}
         counters[np.where(record)] += 1
 
         yield record_data

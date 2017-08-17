@@ -232,6 +232,9 @@ class Table:
         return self.index[self.keys.index(key), :]
 
     def copy(self):
+        """
+        Returns a copy of the table
+        """
         t = Table()
         t.data = [d.copy() for d in self.data]
         t.keys = self.keys[:]
@@ -250,6 +253,7 @@ class Table:
         stitch_table(self, table)
 
     def merge(self, table, column):
+        """Merge two tables using two dense and sorted columns"""
         self.data, self.keys, self.index = merge_table(table, self, column)
 
     def records(self):
@@ -261,21 +265,26 @@ class Table:
         sort_table(self, column)
 
     def filter(self, predicate):
+        """Filter table using a column specification or predicate"""
         t = Table()
         t.data, t.keys, t.index = filter_table(self, predicate)
         return t
 
     def to_pandas(self):
+        """Translate the table to a pandas dataframe"""
         return pd.DataFrame.from_records(self.records())
 
     def to_dict(self):
+        """Translate the table to a dict {key -> array_of_values}"""
         return {k: v for k, v in zip(self.keys, self.data)}
 
     def dropnan(self, clip=False):
+        """Drop the NaNs and leave missing values instead"""
         dropnan_table(self)
 
     @classmethod
     def from_pandas(cls, dataframe):
+        """Create a table from a pandas dataframe"""
         table = {'idx': dataframe.index.values}
         table.update({k: dataframe[k].values for k in dataframe})
         return cls(table)

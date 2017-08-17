@@ -7,13 +7,19 @@ Welcome to gtable's documentation!
 ==================================
 
 Gtable is a container for tabular or tabular-like data designed with speed in
-mind
+mind. It is heavily based on `pandas <http://pandas.pydata.org>`_, and it relies
+on many of its capabilities. It tries to improve one particular aspect of
+pandas datatypes, namely the overhead of :py:class:`pandas.Series` and
+:py:class:`pandas.DataFrame` for simple computations. It also relies heavily on
+`numpy <http://www.numpy.org>`_. You can consider gtable as a thin layer over
+numpy arrays.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    motivation
+   api
 
 
 Indices and tables
