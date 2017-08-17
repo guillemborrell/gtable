@@ -307,3 +307,15 @@ def filter_table(table, predicate):
         )
 
     return new_data, new_keys, new_index
+
+
+def dropnan_table(table):
+    for column in table.keys:
+        isnan = np.isnan(table[column])
+        # Drop in data
+        table[column] = table[column][~isnan]
+        # Get index column
+        index = table.index[table.keys.index(column), :]
+        # Drop from index
+        enumerator = (np.cumsum(index) - np.array(1))[np.where(isnan)]
+        index[enumerator] = 0

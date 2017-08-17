@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from gtable.lib import fillna_column, records, stitch_table, add_column,\
-    merge_table, sort_table, filter_table
+    merge_table, sort_table, filter_table, dropnan_table
 
 
 class Column:
@@ -215,7 +215,7 @@ class Table:
 
             # Pandas DatetimeIndex is supported for convenience.
             elif type(v) == pd.DatetimeIndex:
-                self.data.append(v.values)
+                self.data.append(np.array(v))
                 self.keys.append(k)
                 length_last = _check_length(i, k, v.shape[0], length_last)
                 
@@ -271,6 +271,15 @@ class Table:
     def to_dict(self):
         return {k: v for k, v in zip(self.keys, self.data)}
 
+    def dropnan(self, clip=False):
+        dropnan_table(self)
+
+    @classmethod
+    def from_pandas(cls, dataframe):
+        table = {'idx': dataframe.index.values}
+        table.update({k: dataframe[k].values for k in dataframe})
+        return cls(table)
+
     def __repr__(self):
         column_info = list()
         for k, v in zip(self.keys, self.data):
@@ -287,7 +296,7 @@ class Table:
     @staticmethod
     def __dir__():
         return ['copy', 'add_column', 'stitch', 'merge', 'records', 'to_pandas',
-                'to_dict']
+                'to_dict', 'filter', 'dropnan']
     
     def __getattr__(self, key):
         return Column(self.data[self.keys.index(key)], self._index_column(key))

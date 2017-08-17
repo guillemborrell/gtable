@@ -108,3 +108,16 @@ def test_vcat_heterogeneous():
                                         [1, 1, 1, 1, 1, 1],
                                         [1, 0, 0, 1, 0, 0]], dtype=np.uint8))
     assert np.all(tb.schedule.values == np.array(['first', 'secon']))
+
+
+def test_from_pandas():
+    df = pd.DataFrame(
+        {'a': [1, 2, 3, 4],
+         'b': np.arange(4, dtype=np.float64),
+         'c': pd.date_range('2002-01-01', periods=4, freq='M')}
+    )
+    t = Table.from_pandas(df)
+    assert np.all(t.a.values == df.a.values)
+    assert np.all(t.b.values == df.b.values)
+    assert np.all(t.c.values == df.c.values)
+    assert np.all(t.idx.values == df.index.values)
