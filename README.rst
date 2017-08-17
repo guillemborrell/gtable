@@ -20,6 +20,7 @@ computations:
 It also relies heavily on `numpy <http://www.numpy.org>`_. You can consider
 gtable as a thin layer over numpy arrays.
 
+You can install gtable with a simple ``pip install gtable``.
 Gtable is an open-source project released under a BSD 3-Clause license. You
 can read the full documentation
 `here <http://gtable.readthedocs.io/en/latest/>`_.

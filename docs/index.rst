@@ -30,6 +30,8 @@ gtable as a thin layer over numpy arrays.
    api
    license
 
+You can install gtable with a simple ``pip install gtable``.
+
 Gtable is an open-source project released under a BSD 3-Clause license. You can
 find a copy of the license in this document
 
