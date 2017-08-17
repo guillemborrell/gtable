@@ -298,18 +298,18 @@ def filter_table(table, predicate):
 
     # Now for the values
     for column, index in zip(table.data, table.index):
-        enumerator = index.cumsum() - np.array(1)
-        new_data.append(
-            column[enumerator[index.astype(np.bool)][
+        enumerator = index.astype(np.int).cumsum() - np.array(1)
+        filtered_column = column[enumerator[predicate.index.astype(np.bool)][
                 predicate.values.astype(np.bool)]]
-        )
+        cleaner = (enumerator >= 0)[predicate.index.astype(np.bool)]
+        new_data.append(filtered_column[cleaner])
 
     return new_data, new_keys, new_index
 
 
 def dropnan_table(table):
     for column in table.keys:
-        isnan = np.isnan(table[column])
+        isnan = np.isnan(table[column].astype(np.float))
         # Drop in data
         table[column] = table[column][~isnan]
         # Get index column

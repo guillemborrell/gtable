@@ -26,6 +26,7 @@ gtable as a thin layer over numpy arrays.
    :caption: Contents:
 
    motivation
+   basic
    api
    license
 

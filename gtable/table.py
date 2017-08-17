@@ -15,6 +15,18 @@ class Column:
     def __repr__(self):
         return "<Column[ {} ] object at {}>".format(self.values.dtype, hex(id(self)))
 
+    def __radd__(self, y):
+        if type(y) == np.ndarray:
+            return Column(self.values + y, self.index)
+        elif type(y) == Column:
+            return Column(self.values + y.values, self.index)
+        elif type(y) == int:
+            return Column(self.values + y, self.index)
+        elif type(y) == float:
+            return Column(self.values + y, self.index)
+        else:
+            raise ValueError('Type not supported')
+
     def __add__(self, y):
         if type(y) == np.ndarray:
             return Column(self.values + y, self.index)
@@ -40,6 +52,16 @@ class Column:
             raise ValueError('Type not supported')
     
     def __mul__(self, y):
+        if type(y) == int:
+            return Column(self.values * y, self.index)
+        elif type(y) == float:
+            return Column(self.values * y, self.index)
+        elif type(y) == np.ndarray:
+            return Column(self.values * y, self.index)
+        elif type(y) == Column:
+            return Column(self.values * y.values, self.index)
+
+    def __rmul__(self, y):
         if type(y) == int:
             return Column(self.values * y, self.index)
         elif type(y) == float:
@@ -248,6 +270,15 @@ class Table:
         """
         add_column(self, k, v, index, align=align)
 
+    def del_column(self, k):
+        """
+        Column deletion
+        """
+        del self[k]
+        idx = self.keys.index(k)
+        self.keys.pop(idx)
+        self.index = np.delete(self.index, (idx), axis=0)
+
     def stitch(self, table):
         """Vertical (Table) concatenation."""
         stitch_table(self, table)
@@ -315,6 +346,9 @@ class Table:
 
     def __setitem__(self, key, value):
         self.data[self.keys.index(key)] = value
+
+    def __delitem__(self, key):
+        del self.data[self.keys.index(key)]
 
     def __setattr__(self, key, value):
         if key in ['data', 'keys', 'index']:
