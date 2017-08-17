@@ -22,4 +22,4 @@ gtable as a thin layer over numpy arrays.
 
 Gtable is an open-source project released under a BSD 3-Clause license. You
 can read the full documentation
-`here <https://readthedocs.org/projects/gtable/>`_.
+`here <http://gtable.readthedocs.io/en/latest/>`_.
