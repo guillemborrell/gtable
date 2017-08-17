@@ -13,7 +13,7 @@ overhead.
 
 To be more precise, let's start by importing Pandas
 
-.. code:: ipython3
+.. code:: python
 
     import pandas as pd
     import numpy as np
@@ -24,7 +24,7 @@ We have just created a relatively large dataframe with some dummy data,
 enough to prove my initial point. Let's see how much time it takes to
 add the two columns and to insert the result into the third one.
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     df.c = df.a + df.b
@@ -38,12 +38,12 @@ add the two columns and to insert the result into the third one.
 Is that fast or slow? Well, let's try to make the very same computation
 in a slightly different manner
 
-.. code:: ipython3
+.. code:: python
 
     a = df.a.values
     b = df.b.values
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     c = a + b
@@ -58,11 +58,11 @@ If we compare how fast it is to a simple sum of two numpy arrays, it is
 pretty fast. But we are adding two relatively large arrays. Let's try
 the exact same thing with smaller arrays.
 
-.. code:: ipython3
+.. code:: python
 
     df = pd.DataFrame({'a': np.arange(100), 'b': np.arange(100)})
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     df.c = df.a + df.b
@@ -73,12 +73,12 @@ the exact same thing with smaller arrays.
     95.5 µs ± 114 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)
 
 
-.. code:: ipython3
+.. code:: python
 
     a = df.a.values
     b = df.b.values
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     c = a + b
@@ -128,13 +128,13 @@ This is where I started thinking. There must be something in between.
 Something that is fast, but it's not just a dictionary of numpy arrays.
 And I started designing gtable
 
-.. code:: ipython3
+.. code:: python
 
     from gtable import Table
     
     tb = Table({'a': np.arange(1E6), 'b': np.arange(1E6)})
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     tb.c = tb.a + tb.b
@@ -148,11 +148,11 @@ And I started designing gtable
 You can see that for large arrays, the computation time shadows the
 overhead. Let's see how well it does with smaller arrays
 
-.. code:: ipython3
+.. code:: python
 
     tb = Table({'a': np.arange(100), 'b': np.arange(100)})
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     tb.c = tb.a + tb.b
@@ -169,7 +169,7 @@ the computation by a little bit more if we fallback into some kind of *I
 know what I am doing* mode, and we want to reuse memory to avoid
 allocations:
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     tb['a'] = tb['a'] + tb['b']

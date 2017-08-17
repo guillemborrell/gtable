@@ -3,17 +3,17 @@ Basic features
 
 Let's start by creating a table
 
-.. code:: ipython3
+.. code:: python
 
     from gtable import Table
     import numpy as np
     import pandas as pd
 
-.. code:: ipython3
+.. code:: python
 
     t = Table()
 
-.. code:: ipython3
+.. code:: python
 
     t.a = np.random.rand(10)
     t.b = pd.date_range('2000-01-01', freq='M', periods=10)
@@ -25,7 +25,7 @@ the ``add_column`` method if the default alignment is not the one you
 want. The usual representation of the table gives information about the
 actual length of each column and its type.
 
-.. code:: ipython3
+.. code:: python
 
     t
 
@@ -42,7 +42,7 @@ You can translate the table to a Pandas dataframe by just calling the
 ``to_pandas`` method, and leverage the great notebook visualization of
 the Dataframe
 
-.. code:: ipython3
+.. code:: python
 
     df = t.to_pandas()
     df
@@ -159,7 +159,7 @@ while the DataFrame has an index (an integer just keeps the order in
 this case), the Table is just a table trivially indexed by the order of
 the records
 
-.. code:: ipython3
+.. code:: python
 
     df.index.values
 
@@ -174,7 +174,7 @@ the records
 
 Another important difference how data is stored in each container.
 
-.. code:: ipython3
+.. code:: python
 
     df.c.values
 
@@ -187,7 +187,7 @@ Another important difference how data is stored in each container.
 
 
 
-.. code:: ipython3
+.. code:: python
 
     t.c.values
 
@@ -203,7 +203,7 @@ Another important difference how data is stored in each container.
 While Pandas relies on NaN to store empty values, the Table uses a
 bitmap index to differentiate between a missing element and a NaN
 
-.. code:: ipython3
+.. code:: python
 
     t.index
 
@@ -224,7 +224,7 @@ index has pros and cons. One of the interesting pros is that
 computations with sparse data are significantly faster, while keeping
 data indexed.
 
-.. code:: ipython3
+.. code:: python
 
     df.c.values
 
@@ -237,7 +237,7 @@ data indexed.
 
 
 
-.. code:: ipython3
+.. code:: python
 
     t.c.values
 
@@ -254,7 +254,7 @@ The main benefit of the Table class is that both assignment and
 computation with sparse data is significantly faster. It operates with
 less data, and it does not have to deal with the index
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     2*t['c']
@@ -265,7 +265,7 @@ less data, and it does not have to deal with the index
     1.63 µs ± 200 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
 
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     2*df['c']
@@ -281,7 +281,7 @@ Table. But that does not mean that the Table is completely feature-less,
 or that the features are slow. Table allows to filter the data in a
 similar fashon to the Dataframe with slightly better performance.
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     df[df.c>0]
@@ -292,7 +292,7 @@ similar fashon to the Dataframe with slightly better performance.
     474 µs ± 89.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 
-.. code:: ipython3
+.. code:: python
 
     df[df.c>0]
 
@@ -346,7 +346,7 @@ similar fashon to the Dataframe with slightly better performance.
 
 
 
-.. code:: ipython3
+.. code:: python
 
     %%timeit
     t.filter(t.c > 0)
@@ -357,7 +357,7 @@ similar fashon to the Dataframe with slightly better performance.
     131 µs ± 2.15 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)
 
 
-.. code:: ipython3
+.. code:: python
 
     t.filter(t.c > 0).to_pandas()
 
@@ -416,7 +416,7 @@ data cannot be accessed through the index, and there is no such thing as
 the Dataframe's iloc. If we extract the data of the column and we assign
 a value to one of its items, we may get the result we want.
 
-.. code:: ipython3
+.. code:: python
 
     t['c'][1] = 3
     t.filter(t.c > 0).to_pandas()
@@ -470,13 +470,13 @@ a value to one of its items, we may get the result we want.
 
 But we cannot assign an element that does not exist
 
-.. code:: ipython3
+.. code:: python
 
     #t['c'][9]
 
 Since the data of that column only has two elements
 
-.. code:: ipython3
+.. code:: python
 
     t['c']
 
@@ -492,7 +492,7 @@ Since the data of that column only has two elements
 Up to this point we have created the Dataframe from the table, but we
 can make the conversion the other way round
 
-.. code:: ipython3
+.. code:: python
 
     t1 = Table.from_pandas(df)
     t1
@@ -512,11 +512,11 @@ another column has been added with the index information. If we already
 know that all NaN are in fact NA, we can recover the sparse structure
 with
 
-.. code:: ipython3
+.. code:: python
 
     t1.dropnan()
 
-.. code:: ipython3
+.. code:: python
 
     t1
 
@@ -532,13 +532,13 @@ with
 We can recover the types casting the columns, that are numpy arrays. To
 restore the original columns we can also delete the index
 
-.. code:: ipython3
+.. code:: python
 
     t1['c'] = t1['c'].astype(np.int)
     t1['d'] = t1['d'].astype(np.int)
     t1.del_column('idx')
 
-.. code:: ipython3
+.. code:: python
 
     t1
 
