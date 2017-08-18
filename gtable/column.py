@@ -2,7 +2,8 @@ import numpy as np
 import operator
 from gtable.lib import fillna_column
 from gtable.fast import apply_fast_add, apply_fast_mul, apply_fast_truediv, \
-    apply_fast_sub
+    apply_fast_sub, apply_fast_floordiv, apply_fast_and, apply_fast_or, \
+    apply_fast_xor
 
 
 class Column:
@@ -43,10 +44,10 @@ class Column:
         return apply_truediv(self, y)
     
     def __floordiv__(self, y):
-        return apply_operator(self, y, operator.floordiv)
+        return apply_floordiv(self, y)
 
     def __rfloordiv__(self, y):
-        return apply_operator(self, y, operator.floordiv)
+        return apply_floordiv(self, y)
 
     def __pow__(self, y):
         return apply_operator(self, y, operator.pow)
@@ -73,13 +74,13 @@ class Column:
         return apply_operator_str(self, y, operator.ne)
 
     def __and__(self, y):
-        return apply_operator_bool(self, y, operator.and_)
+        return apply_and(self, y)
 
     def __or__(self, y):
-        return apply_operator_bool(self, y, operator.or_)
+        return apply_or(self, y)
 
     def __xor__(self, y):
-        return apply_operator_bool(self, y, operator.xor)
+        return apply_xor(self, y)
 
     def __neg__(self):
         return Column(-self.values, self.index)
@@ -163,6 +164,88 @@ def apply_truediv(left: Column, right: Column):
         return Column(operator.truediv(left.values, right), left.index)
     elif type(right) == float:
         return Column(operator.truediv(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+    
+    
+def apply_floordiv(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.floordiv(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_floordiv(left.values, right.values,
+                                            left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.floordiv(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.floordiv(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_and(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.and_(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_and(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result.astype(np.bool), index)
+
+    elif type(right) == str:
+        return Column(operator.and_(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == int:
+        return Column(operator.and_(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == float:
+        return Column(operator.and_(left.values.astype(np.bool), right),
+                      left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_or(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.or_(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_or(left.values, right.values,
+                                      left.index, right.index)
+        return Column(result.astype(np.bool), index)
+
+    elif type(right) == str:
+        return Column(operator.or_(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == int:
+        return Column(operator.or_(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == float:
+        return Column(operator.or_(left.values.astype(np.bool), right),
+                      left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_xor(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.xor(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_xor(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result.astype(np.bool), index)
+
+    elif type(right) == str:
+        return Column(operator.xor(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == int:
+        return Column(operator.xor(left.values.astype(np.bool), right),
+                      left.index)
+    elif type(right) == float:
+        return Column(operator.xor(left.values.astype(np.bool), right),
+                      left.index)
     else:
         raise ValueError('type not supported')
 
