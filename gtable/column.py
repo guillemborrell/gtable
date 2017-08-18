@@ -3,7 +3,8 @@ import operator
 from gtable.lib import fillna_column
 from gtable.fast import apply_fast_add, apply_fast_mul, apply_fast_truediv, \
     apply_fast_sub, apply_fast_floordiv, apply_fast_and, apply_fast_or, \
-    apply_fast_xor
+    apply_fast_xor, apply_fast_pow, apply_fast_mod, apply_fast_ge, \
+    apply_fast_gt, apply_fast_le, apply_fast_lt
 
 
 class Column:
@@ -50,22 +51,22 @@ class Column:
         return apply_floordiv(self, y)
 
     def __pow__(self, y):
-        return apply_operator(self, y, operator.pow)
+        return apply_pow(self, y)
 
     def __mod__(self, y):
-        return apply_operator(self, y, operator.mod)
+        return apply_mod(self, y)
 
     def __lt__(self, y):
-        return apply_operator(self, y, operator.lt)
+        return apply_lt(self, y)
 
     def __le__(self, y):
-        return apply_operator(self, y, operator.le)
+        return apply_le(self, y)
 
     def __gt__(self, y):
-        return apply_operator(self, y, operator.gt)
+        return apply_gt(self, y)
 
     def __ge__(self, y):
-        return apply_operator(self, y, operator.ge)
+        return apply_ge(self, y)
 
     def __eq__(self, y):
         return apply_operator_str(self, y, operator.eq)
@@ -180,6 +181,102 @@ def apply_floordiv(left: Column, right: Column):
         return Column(operator.floordiv(left.values, right), left.index)
     elif type(right) == float:
         return Column(operator.floordiv(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+    
+
+def apply_pow(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.pow(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_pow(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.pow(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.pow(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_mod(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.mod(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_mod(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.mod(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.mod(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+    
+
+def apply_gt(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.gt(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_gt(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.gt(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.gt(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_ge(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.ge(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_ge(left.values, right.values,
+                                      left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.ge(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.ge(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')    
+
+
+def apply_lt(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.lt(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_lt(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.lt(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.lt(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')    
+
+
+def apply_le(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.le(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_le(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.le(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.le(left.values, right), left.index)
     else:
         raise ValueError('type not supported')
 
