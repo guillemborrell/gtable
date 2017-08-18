@@ -85,9 +85,9 @@ def test_compute_wrong_size():
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
     t.stitch(t1)
 
-    with pytest.raises(ValueError) as excinfo:
-        t.c = t.a + t.b/2
-    assert 'broadcast together' in str(excinfo.value)
+    t.c = t.a + t.b/2
+    assert np.all(t.c.values == np.array([3, 4.5, 6]))
+    assert np.all(t.c.index == np.array([1, 1, 1, 0, 0, 0]))
 
 
 def test_add_array():
