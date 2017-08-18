@@ -1,6 +1,8 @@
 import numpy as np
 import operator
 from gtable.lib import fillna_column
+from gtable.fast import apply_fast_add, apply_fast_mul, apply_fast_truediv, \
+    apply_fast_sub
 
 
 class Column:
@@ -10,35 +12,35 @@ class Column:
     def __init__(self, values, index):
         self.values = values
         self.index = index
-        self._enumerator = np.cumsum(self.index) - np.array(1)
+        self._enumerator = None
 
     def __repr__(self):
         return "<Column[ {} ] object at {}>".format(self.values.dtype,
                                                     hex(id(self)))
 
     def __add__(self, y):
-        return apply_operator(self, y, operator.add)
+        return apply_add(self, y)
 
     def __radd__(self, y):
-        return apply_operator(self, y, operator.add)
+        return apply_add(self, y)
 
     def __sub__(self, y):
-        return apply_operator(self, y, operator.sub)
+        return apply_truediv(self, y)
 
     def __rsub__(self, y):
-        return apply_operator(self, y, operator.sub)
+        return apply_truediv(self, y)
 
     def __mul__(self, y):
-        return apply_operator(self, y, operator.mul)
+        return apply_mul(self, y)
 
     def __rmul__(self, y):
-        return apply_operator(self, y, operator.mul)
+        return apply_mul(self, y)
 
     def __truediv__(self, y):
-        return apply_operator(self, y, operator.truediv)
+        return apply_truediv(self, y)
 
     def __rtruediv__(self, y):
-        return apply_operator(self, y, operator.truediv)
+        return apply_truediv(self, y)
     
     def __floordiv__(self, y):
         return apply_operator(self, y, operator.floordiv)
@@ -84,6 +86,8 @@ class Column:
 
     def __getitem__(self, i):
         if self.index[i]:
+            if self._enumerator is None:
+                self._enumerator = np.cumsum(self.index) - np.array(1)
             return self.values[self._enumerator[i]]
         else:
             return None
@@ -97,6 +101,70 @@ class Column:
                                                 self.index,
                                                 reverse,
                                                 fillvalue)
+
+
+def apply_add(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.add(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_add(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.add(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.add(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_sub(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.sub(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_sub(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.sub(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.sub(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_mul(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.mul(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_mul(left.values, right.values,
+                                       left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.mul(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.mul(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
+
+
+def apply_truediv(left: Column, right: Column):
+    if type(right) == np.ndarray:
+        return Column(operator.truediv(left.values, right), left.index)
+    elif type(right) == Column:
+        result, index = apply_fast_truediv(left.values, right.values,
+                                           left.index, right.index)
+        return Column(result, index)
+
+    elif type(right) == int:
+        return Column(operator.truediv(left.values, right), left.index)
+    elif type(right) == float:
+        return Column(operator.truediv(left.values, right), left.index)
+    else:
+        raise ValueError('type not supported')
 
 
 def apply_operator(left: Column, right: Column, op):
@@ -140,6 +208,7 @@ def apply_operator_str(left: Column, right: Column, op):
                     right.index.astype(np.bool)]]
             result = op(masked_left, masked_right)
             return Column(result, index)
+
     elif type(right) == str:
         return Column(op(left.values, right), left.index)
     elif type(right) == int:
@@ -169,6 +238,7 @@ def apply_operator_bool(left: Column, right: Column, op):
             result = op(masked_left.astype(np.bool),
                         masked_right.astype(np.bool))
             return Column(result, index)
+
     elif type(right) == str:
         return Column(op(left.values.astype(np.bool), right), left.index)
     elif type(right) == int:

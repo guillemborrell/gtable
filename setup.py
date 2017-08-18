@@ -11,4 +11,4 @@ setup(name='gtable',
       packages=['gtable'],
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
-      install_requires=['numpy', 'pandas'])
+      install_requires=['numpy', 'pandas', 'numba'])
