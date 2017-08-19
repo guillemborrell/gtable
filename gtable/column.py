@@ -14,7 +14,6 @@ class Column:
     def __init__(self, values, index):
         self.values = values
         self.index = index
-        self._enumerator = None
 
     def __repr__(self):
         return "<Column[ {} ] object at {}>".format(self.values.dtype,
@@ -88,9 +87,7 @@ class Column:
 
     def __getitem__(self, i):
         if self.index[i]:
-            if self._enumerator is None:
-                self._enumerator = np.cumsum(self.index) - np.array(1)
-            return self.values[self._enumerator[i]]
+            return self.values[int(self.index[:i+1].sum()) - 1]
         else:
             return None
 
