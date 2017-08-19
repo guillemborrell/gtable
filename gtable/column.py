@@ -69,10 +69,10 @@ class Column:
         return apply_ge(self, y)
 
     def __eq__(self, y):
-        return apply_operator_str(self, y, operator.eq)
+        return apply_eq(self, y)
 
     def __ne__(self, y):
-        return apply_operator_str(self, y, operator.ne)
+        return apply_ne(self, y)
 
     def __and__(self, y):
         return apply_and(self, y)
@@ -346,84 +346,48 @@ def apply_xor(left: Column, right: Column):
     else:
         raise ValueError('type not supported')
 
-
-def apply_operator(left: Column, right: Column, op):
+    
+def apply_eq(left: Column, right: Column):
     if type(right) == np.ndarray:
-        return Column(op(left.values, right), left.index)
+        return Column(operator.eq(left.values.astype(np.bool), right),
+                      left.index)
     elif type(right) == Column:
-        if np.all(right.index == left.index):
-            return Column(op(left.values, right.values), left.index)
-        else:
-            index = np.bitwise_and(left.index, right.index)
-            masked_left = left.values[
-                index.astype(np.bool)[
-                    left.index.astype(np.bool)]]
-            masked_right = right.values[
-                index.astype(np.bool)[
-                    right.index.astype(np.bool)]]
-            result = op(masked_left, masked_right)
-            return Column(result, index)
-
-    elif type(right) == int:
-        return Column(op(left.values, right), left.index)
-    elif type(right) == float:
-        return Column(op(left.values, right), left.index)
-    else:
-        raise ValueError('type not supported')
-
-
-def apply_operator_str(left: Column, right: Column, op):
-    if type(right) == np.ndarray:
-        return Column(op(left.values, right), left.index)
-    elif type(right) == Column:
-        if np.all(right.index == left.index):
-            return Column(op(left.values, right.values), left.index)
-        else:
-            index = np.bitwise_and(left.index, right.index)
-            masked_left = left.values[
-                index.astype(np.bool)[
-                    left.index.astype(np.bool)]]
-            masked_right = right.values[
-                index.astype(np.bool)[
-                    right.index.astype(np.bool)]]
-            result = op(masked_left, masked_right)
-            return Column(result, index)
+        result, index = apply_fast_eq(left.values, right.values,
+                                      left.index, right.index)
+        return Column(result.astype(np.bool), index)
 
     elif type(right) == str:
-        return Column(op(left.values, right), left.index)
+        return Column(operator.eq(left.values.astype(np.bool), right),
+                      left.index)
     elif type(right) == int:
-        return Column(op(left.values, right), left.index)
+        return Column(operator.eq(left.values.astype(np.bool), right),
+                      left.index)
     elif type(right) == float:
-        return Column(op(left.values, right), left.index)
+        return Column(operator.eq(left.values.astype(np.bool), right),
+                      left.index)
     else:
         raise ValueError('type not supported')
 
-
-def apply_operator_bool(left: Column, right: Column, op):
+    
+def apply_ne(left: Column, right: Column):
     if type(right) == np.ndarray:
-        return Column(op(left.values.astype(np.bool), right), left.index)
+        return Column(operator.ne(left.values.astype(np.bool), right),
+                      left.index)
     elif type(right) == Column:
-        if np.all(right.index == left.index):
-            return Column(op(left.values.astype(np.bool),
-                             right.values.astype(np.bool)),
-                          left.index)
-        else:
-            index = np.bitwise_and(left.index, right.index)
-            masked_left = left.values[
-                index.astype(np.bool)[
-                    left.index.astype(np.bool)]]
-            masked_right = right.values[
-                index.astype(np.bool)[
-                    right.index.astype(np.bool)]]
-            result = op(masked_left.astype(np.bool),
-                        masked_right.astype(np.bool))
-            return Column(result, index)
+        result, index = apply_fast_ne(left.values, right.values,
+                                      left.index, right.index)
+        return Column(result.astype(np.bool), index)
 
     elif type(right) == str:
-        return Column(op(left.values.astype(np.bool), right), left.index)
+        return Column(operator.ne(left.values.astype(np.bool), right),
+                      left.index)
     elif type(right) == int:
-        return Column(op(left.values.astype(np.bool), right), left.index)
+        return Column(operator.ne(left.values.astype(np.bool), right),
+                      left.index)
     elif type(right) == float:
-        return Column(op(left.values.astype(np.bool), right), left.index)
+        return Column(operator.ne(left.values.astype(np.bool), right),
+                      left.index)
     else:
         raise ValueError('type not supported')
+
+    
