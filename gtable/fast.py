@@ -385,3 +385,45 @@ def apply_fast_ne(value_left, value_right, index_left, index_right):
             cursor_right += 1
 
     return result, index
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def sieve_own(data, mask, index):
+    """
+    Sieve picks a mask over data and returns the filtered data array and index
+    """
+    new_data = data[mask]
+    new_index = np.empty_like(index)
+
+    data_cursor = 0
+    for i in range(len(index)):
+        if index[i]:
+            if mask[data_cursor]:
+                new_index[i] = 1
+            else:
+                new_index[i] = 0
+            data_cursor += 1
+        else:
+            new_index[i] = 0
+        
+    
+@jit(nopyton=True, nogil=True, cache=True)
+def sieve_other(data, datafilter, mask, index, indexfilter):
+    """
+    Sieve data and index from the mask of other data array
+    """
+    new_index = np.empty_like(index)
+    new_data = list()
+
+    data_cursor = 0
+
+    for i in range(len(index)):
+        if indexfilter[i]:
+            if index[i]:
+            if mask[data_cursor]:
+                new_index[i] = 1
+            else:
+                new_index[i] = 0
+            data_cursor += 1
+        else:
+            new_index[i] = 0

@@ -60,18 +60,9 @@ def merge_table(table_left, table_right, column):
     right_index = table_right.index[right_key, :]
 
     sorter = np.argsort(left_data)
-
-    left_length = len(left_index)
-    right_length = len(right_index)
-    
-    if left_length != len(left_data):
-        raise ValueError('Merge only with a dense column')
-
-    if right_length != len(right_data):
-        raise ValueError('Merge only with a dense column')
-
     insertions = np.searchsorted(left_data, right_data, sorter=sorter)
     all_columns = set(chain(table_left.keys, table_right.keys))       
+
     width = len(all_columns)
     length = left_length + right_length
 
@@ -275,7 +266,7 @@ def add_column(table, k, v, index=None, align='top'):
         elif align == 'bottom':
             index_stride[0, -len(v):] = 1
         else:
-            raise ValueError('Wrong alignment code')
+            raise ValueError('Alignment can be either "top" or "bottom"')
 
         table.index = np.concatenate([table.index, index_stride])
 
@@ -326,3 +317,13 @@ def dropnan_table(table):
         # Drop from index
         enumerator = (np.cumsum(index) - np.array(1))[np.where(isnan)]
         index[enumerator] = 0
+
+
+def inner_join_table(left_table, right_table, column):
+    if column not in table_left.keys:
+        raise ValueError('{} not in left table'.format(column))
+
+    if column not in table_right.keys:
+        raise ValueError('{} not in right table'.format(column))
+
+    

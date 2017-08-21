@@ -91,6 +91,15 @@ class Column:
         else:
             return None
 
+    def __len__(self):
+        return len(self.index)
+
+    def __contains__(self):
+        return apply_in(self, y)
+
+    def intersect(self, y):
+        return apply_intersection(self, y)
+
     def fillna(self, reverse=False, fillvalue=None):
         """
         Fills the non available value sequentially with the previous
@@ -259,6 +268,28 @@ def apply_ne(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_ne(left.values, right.values,
                                       left.index, right.index)
+        return Column(result.astype(np.bool), index)
+
+    else:
+        return Column(operator.ne(left.values.astype(np.bool), right),
+                      left.index)
+
+    
+def apply_in(left: Column, right):
+    if type(right) == Column:
+        result, index = apply_fast_intersection(left.values, right.values,
+                                                left.index, right.index)
+        return Column(result.astype(np.bool), index)
+
+    else:
+        return Column(operator.ne(left.values.astype(np.bool), right),
+                      left.index)
+
+    
+def apply_intersection(left: Column, right):
+    if type(right) == Column:
+        result, index = apply_fast_intersection(left.values, right.values,
+                                                left.index, right.index)
         return Column(result.astype(np.bool), index)
 
     else:
