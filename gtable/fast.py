@@ -388,7 +388,7 @@ def apply_fast_ne(value_left, value_right, index_left, index_right):
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def sieve_own(data, mask, index):
+def sieve_column_own(data, mask, index):
     """
     Sieve picks a mask over data and returns the filtered data array and index
     """
@@ -405,25 +405,83 @@ def sieve_own(data, mask, index):
             data_cursor += 1
         else:
             new_index[i] = 0
+
+    return new_data, new_index
         
     
-@jit(nopyton=True, nogil=True, cache=True)
-def sieve_other(data, datafilter, mask, index, indexfilter):
+@jit(nopython=True, nogil=True, cache=True)
+def sieve_column_other(data, index, rhs_index, mask):
     """
     Sieve data and index from the mask of other data array
     """
     new_index = np.empty_like(index)
-    new_data = list()
+    filtered_rhs_index = rhs_index.copy()
+    rhs_index_cursor = 0
+    for i in range(len(filtered_rhs_index)):
+        if rhs_index[i]:
+            if not mask[rhs_index_cursor]:
+                filtered_rhs_index[i] = np.uint8(0)
+
+            rhs_index_cursor += 1
+
+    new_data_size = (index * filtered_rhs_index).sum()
+    new_data = np.empty(new_data_size, dtype=data.dtype)
+
+    rhs_data_cursor = 0
+    new_data_cursor = 0
+
+    for i in range(len(rhs_index)):
+        if rhs_index[i]:
+            if index[i]:
+                if mask[rhs_data_cursor]:
+                    new_data[new_data_cursor] = data[rhs_data_cursor]
+                    new_data_cursor += 1
+                    new_index[i] = np.uint8(1)
+
+                else:
+                    new_index[i] = np.uint8(0)
+            else:
+                new_index[i] = np.uint8(0)
+
+            rhs_data_cursor += 1
+        else:
+            new_index[i] = np.uint8(0)
+
+    return new_data, new_index
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def crop_column_own(data, index):
+    new_data = np.empty(index.sum(), dtype=data.dtype)
+    new_index = np.ones(index.sum(), dtype=np.uint8)
 
     data_cursor = 0
-
     for i in range(len(index)):
-        if indexfilter[i]:
-            if index[i]:
-            if mask[data_cursor]:
-                new_index[i] = 1
-            else:
-                new_index[i] = 0
+        if index[i]:
+            new_data[data_cursor] = data[data_cursor]
             data_cursor += 1
-        else:
-            new_index[i] = 0
+
+    return new_data, new_index
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def crop_column_other(data, index, rhs_index):
+    new_index = np.empty(rhs_index.sum(), dtype=np.uint8)
+    new_data_size = (index * rhs_index).sum()
+    new_data = np.empty(new_data_size, dtype=data.dtype)
+
+    data_cursor = 0
+    new_data_cursor = 0
+
+    for i in range(len(rhs_index)):
+        if rhs_index[i]:
+            if index[i]:
+                new_data[new_data_cursor] = data[data_cursor]
+                new_index[data_cursor] = np.uint8(1)
+                new_data_cursor += 1
+            else:
+                new_index[data_cursor] = np.uint8(0)
+
+            data_cursor += 1
+
+    return new_data, new_index

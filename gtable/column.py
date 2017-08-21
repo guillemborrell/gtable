@@ -4,7 +4,7 @@ from gtable.lib import fillna_column
 from gtable.fast import apply_fast_add, apply_fast_mul, apply_fast_truediv, \
     apply_fast_sub, apply_fast_floordiv, apply_fast_and, apply_fast_or, \
     apply_fast_xor, apply_fast_pow, apply_fast_mod, apply_fast_ge, \
-    apply_fast_gt, apply_fast_le, apply_fast_lt
+    apply_fast_gt, apply_fast_le, apply_fast_lt, apply_fast_eq, apply_fast_ne
 
 
 class Column:
@@ -94,12 +94,6 @@ class Column:
     def __len__(self):
         return len(self.index)
 
-    def __contains__(self):
-        return apply_in(self, y)
-
-    def intersect(self, y):
-        return apply_intersection(self, y)
-
     def fillna(self, reverse=False, fillvalue=None):
         """
         Fills the non available value sequentially with the previous
@@ -109,6 +103,11 @@ class Column:
                                                 self.index,
                                                 reverse,
                                                 fillvalue)
+
+    def reorder(self, order):
+        self.values = self.values[(np.cumsum(self.index) - 1)[order[
+            self.index.astype(np.bool)]]]
+        self.index = self.index[order]
 
 
 def apply_add(left: Column, right):
@@ -159,6 +158,7 @@ def apply_floordiv(left: Column, right):
     else:
         return Column(operator.floordiv(left.values, right), left.index)
 
+
 def apply_pow(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_pow(left.values, right.values,
@@ -187,6 +187,7 @@ def apply_gt(left: Column, right):
 
     else:
         return Column(operator.gt(left.values, right), left.index)
+
 
 def apply_ge(left: Column, right):
     if type(right) == Column:
@@ -273,27 +274,3 @@ def apply_ne(left: Column, right):
     else:
         return Column(operator.ne(left.values.astype(np.bool), right),
                       left.index)
-
-    
-def apply_in(left: Column, right):
-    if type(right) == Column:
-        result, index = apply_fast_intersection(left.values, right.values,
-                                                left.index, right.index)
-        return Column(result.astype(np.bool), index)
-
-    else:
-        return Column(operator.ne(left.values.astype(np.bool), right),
-                      left.index)
-
-    
-def apply_intersection(left: Column, right):
-    if type(right) == Column:
-        result, index = apply_fast_intersection(left.values, right.values,
-                                                left.index, right.index)
-        return Column(result.astype(np.bool), index)
-
-    else:
-        return Column(operator.ne(left.values.astype(np.bool), right),
-                      left.index)
-
-    

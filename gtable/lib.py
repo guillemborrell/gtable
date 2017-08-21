@@ -60,6 +60,15 @@ def merge_table(table_left, table_right, column):
     right_index = table_right.index[right_key, :]
 
     sorter = np.argsort(left_data)
+
+    left_length = len(left_index)
+    right_length = len(right_index)
+
+    if left_length != len(left_data):
+        raise ValueError('Merge only with a dense column')
+    if right_length != len(right_data):
+        raise ValueError('Merge only with a dense column')
+
     insertions = np.searchsorted(left_data, right_data, sorter=sorter)
     all_columns = set(chain(table_left.keys, table_right.keys))       
 
@@ -319,11 +328,3 @@ def dropnan_table(table):
         index[enumerator] = 0
 
 
-def inner_join_table(left_table, right_table, column):
-    if column not in table_left.keys:
-        raise ValueError('{} not in left table'.format(column))
-
-    if column not in table_right.keys:
-        raise ValueError('{} not in right table'.format(column))
-
-    

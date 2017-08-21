@@ -125,6 +125,9 @@ class Table:
         """Drop the NaNs and leave missing values instead"""
         dropnan_table(self)
 
+    def get(self, key):
+        return Column(self.data[self.keys.index(key)], self._index_column(key))
+
     @classmethod
     def from_pandas(cls, dataframe):
         """Create a table from a pandas dataframe"""
