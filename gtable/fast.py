@@ -413,14 +413,38 @@ def apply_mask_column(data, index, mask):
 def join_low_level(filtered_data_left, index_left,
                    filtered_data_right, index_right):
     length = 0
-    counter_right = 0
-    for l in filtered_data_left:
-        if l <= filtered_data_right[counter_right]:
-            length += 1
+    left_len = len(filtered_data_left)
+    right_len = len(filtered_data_right)
+    cur_left = 0
+    cur_right = 0
+    stop_left = False
+    stop_right = False
 
-        while l > filtered_data_right[counter_right]:
+    while not (stop_left and stop_right):
+        if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
             length += 1
-            counter_right += 1
+            if cur_left == left_len - 1:
+                stop_left = True
+            else:
+                cur_left += 1
+
+        elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
+            length += 1
+            if cur_left == left_len - 1:
+                stop_left = True
+            else:
+                cur_left += 1
+            if cur_right == right_len - 1:
+                stop_right = True
+            else:
+                cur_right += 1
+
+        else:
+            length += 1
+            if cur_right == right_len - 1:
+                stop_right = True
+            else:
+                cur_right += 1
 
     data_joined = np.empty(length, dtype=filtered_data_left.dtype)
     order_left = np.empty(length, dtype=np.int64)
@@ -436,22 +460,26 @@ def join_low_level(filtered_data_left, index_left,
             order_left[added] = cur_left
             order_right[added] = cur_right
             added += 1
-            cur_left += 1
+            if cur_left < left_len - 1:
+                cur_left += 1
 
         elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
             data_joined[added] = filtered_data_left[cur_left]
             order_left[added] = cur_left
             order_right[added] = cur_right
             added += 1
-            cur_left += 1
-            cur_right += 1
+            if cur_left < left_len - 1:
+                cur_left += 1
+            if cur_right < right_len - 1:
+                cur_right += 1
 
         else:
             data_joined[added] = filtered_data_right[cur_right]
             order_left[added] = cur_left
             order_right[added] = cur_right
             added += 1
-            cur_right += 1
+            if cur_right < right_len - 1:
+                cur_right += 1
 
     index_mapping_left = np.arange(len(index_left))[index_left == 1]
     index_mapping_right = np.arange(len(index_right))[index_right == 1]

@@ -25,10 +25,10 @@ def inner_join(table_left, table_right, column):
     common_left = table_left.get(column)
     common_right = table_right.get(column)
 
-    if not common_left == np.sort(common_left):
+    if not np.all(common_left.values == np.sort(common_left.values)):
         raise ValueError('Trying to join with a non sorted column')
 
-    if not common_right == np.sort(common_right):
+    if not np.all(common_right.values == np.sort(common_right.values)):
         raise ValueError('Trying to join with a non sorted column')
 
     intersection = np.intersect1d(common_left.values, common_right.values)
@@ -69,7 +69,5 @@ def inner_join(table_left, table_right, column):
     res.data = data
     res.index = np.vstack(index)
     res.keys = keys
-
-    print(res.data, res.index, res.keys)
 
     return res
