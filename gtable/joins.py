@@ -1,7 +1,7 @@
 from gtable import Table
 import numpy as np
 from itertools import chain
-from gtable.fast import join_low_level
+from gtable.fast import inner_join_low_level
 
 
 def inner_join(table_left, table_right, column):
@@ -38,7 +38,7 @@ def inner_join(table_left, table_right, column):
     common_left = common_left.mask(data_filter_left)
     common_right = common_right.mask(data_filter_right)
 
-    data_joined, global_left, global_right = join_low_level(
+    data_joined, global_left, global_right = inner_join_low_level(
         common_left.values, common_left.index,
         common_right.values, common_right.index)
 

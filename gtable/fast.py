@@ -410,8 +410,8 @@ def apply_mask_column(data, index, mask):
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def join_low_level(filtered_data_left, index_left,
-                   filtered_data_right, index_right):
+def inner_join_low_level(filtered_data_left, index_left,
+                         filtered_data_right, index_right):
     length = 0
     left_len = len(filtered_data_left)
     right_len = len(filtered_data_right)
