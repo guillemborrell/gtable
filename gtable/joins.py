@@ -107,32 +107,34 @@ def full_outer_join(table_left, table_right, column):
     common_left = common_left.mask(data_filter_left)
     common_right = common_right.mask(data_filter_right)
 
+    print(common_left.values, common_right.values)
+
     data_joined, global_left, global_right = inner_join_low_level(
         common_left.values, common_left.index,
         common_right.values, common_right.index)
 
-    data = list()
-    index = list()
-    keys = list()
+    # data = list()
+    # index = list()
+    # keys = list()
 
-    data.append(data_joined)
-    index.append(np.ones(len(data_joined), dtype=np.uint8))
-    keys.append(column)
+    # data.append(data_joined)
+    # index.append(np.ones(len(data_joined), dtype=np.uint8))
+    # keys.append(column)
 
-    for i_column in joined_columns:
-        if i_column in table_left:
-            c = table_left.get(i_column)
-            c = c.reindex(global_left)
-            keys.append(i_column)
-            data.append(c.values)
-            index.append(c.index)
+    # for i_column in joined_columns:
+    #     if i_column in table_left:
+    #         c = table_left.get(i_column)
+    #         c = c.reindex(global_left)
+    #         keys.append(i_column)
+    #         data.append(c.values)
+    #         index.append(c.index)
 
-        elif i_column in table_right:
-            c = table_right.get(i_column)
-            c = c.reindex(global_right)
-            keys.append(i_column)
-            data.append(c.values)
-            index.append(c.index)
+    #     elif i_column in table_right:
+    #         c = table_right.get(i_column)
+    #         c = c.reindex(global_right)
+    #         keys.append(i_column)
+    #         data.append(c.values)
+    #         index.append(c.index)
 
     res = Table()
     res.data = data

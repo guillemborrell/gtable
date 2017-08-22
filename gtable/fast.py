@@ -420,7 +420,7 @@ def inner_join_low_level(filtered_data_left, index_left,
     stop_left = False
     stop_right = False
 
-    while not (stop_left and stop_right):
+    for i in range(left_len + right_len):
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
             length += 1
             if cur_left == left_len - 1:
@@ -446,6 +446,9 @@ def inner_join_low_level(filtered_data_left, index_left,
             else:
                 cur_right += 1
 
+        if stop_left and stop_right:
+            break
+        
     data_joined = np.empty(length, dtype=filtered_data_left.dtype)
     order_left = np.empty(length, dtype=np.int64)
     order_right = np.empty(length, dtype=np.int64)
@@ -495,7 +498,8 @@ def reindex_column(data, index, global_index):
     data_len = 0
 
     for idx in global_index:
-        if index[idx] == 1:
+        # Negative index means empty
+        if index[idx] == 1 and idx >= 0:
             data_len += 1
 
     new_data = np.empty(data_len, dtype=data.dtype)
@@ -506,7 +510,9 @@ def reindex_column(data, index, global_index):
     cursor = 0
 
     for idx in global_index:
-        if index[idx]:
+        if idx < 0:
+            new_index[cursor] = 0
+        elif index[idx]:
             new_data[data_cursor] = data[int(data_index[idx])]
             data_cursor += 1
             new_index[cursor] = 1
