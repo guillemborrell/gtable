@@ -109,8 +109,8 @@ class Column:
         :param order:
         :return:
         """
-        self.values[:] = self.values[(np.cumsum(self.index) - 1)[order[
-            self.index.astype(np.bool)]]]
+        self.values[:] = self.values[(np.cumsum(self.index) - np.array(1)
+                                      )[order[self.index.astype(np.bool)]]]
         self.index[:] = self.index[order]
 
     def mask(self, mask):
@@ -203,7 +203,7 @@ def apply_mod(left: Column, right):
 def apply_gt(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_gt(left.values, right.values,
-                                       left.index, right.index)
+                                      left.index, right.index)
         return Column(result, index)
 
     else:
@@ -223,7 +223,7 @@ def apply_ge(left: Column, right):
 def apply_lt(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_lt(left.values, right.values,
-                                       left.index, right.index)
+                                      left.index, right.index)
         return Column(result, index)
 
     else:
@@ -233,7 +233,7 @@ def apply_lt(left: Column, right):
 def apply_le(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_le(left.values, right.values,
-                                       left.index, right.index)
+                                      left.index, right.index)
         return Column(result, index)
 
     else:
@@ -246,8 +246,6 @@ def apply_and(left: Column, right):
                                        left.index, right.index)
         return Column(result.astype(np.bool), index)
 
-        return Column(operator.and_(left.values.astype(np.bool), right),
-                      left.index)
     else:
         return Column(operator.and_(left.values.astype(np.bool), right),
                       left.index)

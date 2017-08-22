@@ -476,9 +476,10 @@ def reindex_column(data, index, global_index):
 
     data_cursor = 0
     cursor = 0
+
     for idx in global_index:
-        if index[int(idx)]:
-            new_data[data_cursor] = data[int(data_index[int(idx)])]
+        if index[idx]:
+            new_data[data_cursor] = data[int(data_index[idx])]
             data_cursor += 1
             new_index[cursor] = 1
         else:
