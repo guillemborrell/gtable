@@ -280,8 +280,7 @@ def apply_eq(left: Column, right):
         return Column(result.astype(np.bool), index)
 
     else:
-        return Column(operator.eq(left.values.astype(np.bool), right),
-                      left.index)
+        return Column(operator.eq(left.values, right), left.index)
 
     
 def apply_ne(left: Column, right):
@@ -291,5 +290,4 @@ def apply_ne(left: Column, right):
         return Column(result.astype(np.bool), index)
 
     else:
-        return Column(operator.ne(left.values.astype(np.bool), right),
-                      left.index)
+        return Column(operator.ne(left.values, right), left.index)
