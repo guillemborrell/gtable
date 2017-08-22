@@ -388,7 +388,7 @@ def apply_fast_ne(value_left, value_right, index_left, index_right):
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def sieve_column_own(data, mask, index):
+def apply_mask_column(data, index, mask):
     """
     Sieve picks a mask over data and returns the filtered data array and index
     """
@@ -407,81 +407,83 @@ def sieve_column_own(data, mask, index):
             new_index[i] = 0
 
     return new_data, new_index
-        
-    
+
+
 @jit(nopython=True, nogil=True, cache=True)
-def sieve_column_other(data, index, rhs_index, mask):
-    """
-    Sieve data and index from the mask of other data array
-    """
-    new_index = np.empty_like(index)
-    filtered_rhs_index = rhs_index.copy()
-    rhs_index_cursor = 0
-    for i in range(len(filtered_rhs_index)):
-        if rhs_index[i]:
-            if not mask[rhs_index_cursor]:
-                filtered_rhs_index[i] = np.uint8(0)
+def join_low_level(filtered_data_left, index_left,
+                   filtered_data_right, index_right):
+    length = 0
+    counter_right = 0
+    for l in filtered_data_left:
+        if l <= filtered_data_right[counter_right]:
+            length += 1
 
-            rhs_index_cursor += 1
+        while l > filtered_data_right[counter_right]:
+            length += 1
+            counter_right += 1
 
-    new_data_size = (index * filtered_rhs_index).sum()
-    new_data = np.empty(new_data_size, dtype=data.dtype)
+    data_joined = np.empty(length, dtype=filtered_data_left.dtype)
+    order_left = np.empty(length, dtype=np.int64)
+    order_right = np.empty(length, dtype=np.int64)
 
-    rhs_data_cursor = 0
-    new_data_cursor = 0
+    cur_left = 0
+    cur_right = 0
+    added = 0
 
-    for i in range(len(rhs_index)):
-        if rhs_index[i]:
-            if index[i]:
-                if mask[rhs_data_cursor]:
-                    new_data[new_data_cursor] = data[rhs_data_cursor]
-                    new_data_cursor += 1
-                    new_index[i] = np.uint8(1)
+    while added < length:
+        if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
+            data_joined[added] = filtered_data_left[cur_left]
+            order_left[added] = cur_left
+            order_right[added] = cur_right
+            added += 1
+            cur_left += 1
 
-                else:
-                    new_index[i] = np.uint8(0)
-            else:
-                new_index[i] = np.uint8(0)
+        elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
+            data_joined[added] = filtered_data_left[cur_left]
+            order_left[added] = cur_left
+            order_right[added] = cur_right
+            added += 1
+            cur_left += 1
+            cur_right += 1
 
-            rhs_data_cursor += 1
         else:
-            new_index[i] = np.uint8(0)
+            data_joined[added] = filtered_data_right[cur_right]
+            order_left[added] = cur_left
+            order_right[added] = cur_right
+            added += 1
+            cur_right += 1
 
-    return new_data, new_index
+    index_mapping_left = np.arange(len(index_left))[index_left == 1]
+    index_mapping_right = np.arange(len(index_right))[index_right == 1]
 
+    global_left = index_mapping_left[order_left]
+    global_right = index_mapping_right[order_right]
 
-@jit(nopython=True, nogil=True, cache=True)
-def crop_column_own(data, index):
-    new_data = np.empty(index.sum(), dtype=data.dtype)
-    new_index = np.ones(index.sum(), dtype=np.uint8)
-
-    data_cursor = 0
-    for i in range(len(index)):
-        if index[i]:
-            new_data[data_cursor] = data[data_cursor]
-            data_cursor += 1
-
-    return new_data, new_index
+    return data_joined, global_left, global_right
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def crop_column_other(data, index, rhs_index):
-    new_index = np.empty(rhs_index.sum(), dtype=np.uint8)
-    new_data_size = (index * rhs_index).sum()
-    new_data = np.empty(new_data_size, dtype=data.dtype)
+def reindex_column(data, index, global_index):
+    data_len = 0
+
+    for idx in global_index:
+        if index[idx] == 1:
+            data_len += 1
+
+    new_data = np.empty(data_len, dtype=data.dtype)
+    new_index = np.empty(len(global_index), dtype=np.uint8)
+    data_index = index.cumsum() - np.array(1)
 
     data_cursor = 0
-    new_data_cursor = 0
-
-    for i in range(len(rhs_index)):
-        if rhs_index[i]:
-            if index[i]:
-                new_data[new_data_cursor] = data[data_cursor]
-                new_index[data_cursor] = np.uint8(1)
-                new_data_cursor += 1
-            else:
-                new_index[data_cursor] = np.uint8(0)
-
+    cursor = 0
+    for idx in global_index:
+        if index[int(idx)]:
+            new_data[data_cursor] = data[int(data_index[int(idx)])]
             data_cursor += 1
+            new_index[cursor] = 1
+        else:
+            new_index[cursor] = 0
+
+        cursor += 1
 
     return new_data, new_index

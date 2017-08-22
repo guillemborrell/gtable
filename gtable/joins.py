@@ -1,7 +1,7 @@
 from gtable import Table
 import numpy as np
 from itertools import chain
-from gtable.fast import sieve_column_other, crop_column_other, sieve_column_own
+from gtable.fast import join_low_level
 
 
 def inner_join(table_left, table_right, column):
@@ -25,63 +25,51 @@ def inner_join(table_left, table_right, column):
     common_left = table_left.get(column)
     common_right = table_right.get(column)
 
-    intersection = np.sort(np.intersect1d(common_left.values,
-                                          common_right.values))
+    if not common_left == np.sort(common_left):
+        raise ValueError('Trying to join with a non sorted column')
+
+    if not common_right == np.sort(common_right):
+        raise ValueError('Trying to join with a non sorted column')
+
+    intersection = np.intersect1d(common_left.values, common_right.values)
     data_filter_left = np.in1d(common_left.values, intersection)
     data_filter_right = np.in1d(common_right.values, intersection)
-    order_left = np.searchsorted(intersection,
-                                 common_left.values[data_filter_left])
-    order_right = np.searchsorted(intersection,
-                                  common_right.values[data_filter_right])
+
+    common_left = common_left.mask(data_filter_left)
+    common_right = common_right.mask(data_filter_right)
+
+    data_joined, global_left, global_right = join_low_level(
+        common_left.values, common_left.index,
+        common_right.values, common_right.index)
 
     data = list()
     index = list()
     keys = list()
 
-    _, index_left_sieved = sieve_column_own(common_left.values,
-                                            common_left.index,
-                                            data_filter_left)
-
-    _, index_right_sieved = sieve_column_own(common_right.values,
-                                             common_right.index,
-                                             data_filter_right)
-
-    data.append(intersection)
-    index.append(np.ones(len(intersection), dtype=np.uint8))
+    data.append(data_joined)
+    index.append(np.ones(len(data_joined), dtype=np.uint8))
     keys.append(column)
 
     for i_column in joined_columns:
-        if i_column in table_left.keys:
+        if i_column in table_left:
             c = table_left.get(i_column)
-            c.values, c.index = sieve_column_other(c.values,
-                                                   c.index,
-                                                   common_left.index,
-                                                   data_filter_left)
-            c.values, c.index = crop_column_other(c.values,
-                                                  c.index,
-                                                  index_left_sieved)
-            c.reorder(order_left)
+            c = c.reindex(global_left)
+            keys.append(i_column)
             data.append(c.values)
             index.append(c.index)
 
-        elif column in table_right.keys:
+        elif i_column in table_right:
             c = table_right.get(i_column)
-            c.values, c.index = sieve_column_other(c.values,
-                                                   c.index,
-                                                   common_right.index,
-                                                   data_filter_right)
-            c.values, c.index = crop_column_other(c.values,
-                                                  c.index,
-                                                  index_right_sieved)
-            c.reorder(order_right)
+            c = c.reindex(global_right)
+            keys.append(i_column)
             data.append(c.values)
             index.append(c.index)
-
-        keys.append(i_column)
 
     res = Table()
     res.data = data
     res.index = np.vstack(index)
     res.keys = keys
+
+    print(res.data, res.index, res.keys)
 
     return res

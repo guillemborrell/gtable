@@ -13,7 +13,7 @@ def test_fillna():
          [0, 0, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=np.uint8)
 
     b = t.b
-    b.fillna()
+    b = b.fillna()
     
     assert np.all(b.values == np.array([1, 1, 1, 1, 1, 2, 2, 2]))
 
@@ -29,7 +29,7 @@ def test_fillna_fillvalue():
          [0, 0, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=np.uint8)
 
     b = t.b
-    b.fillna(fillvalue=-1)
+    b = b.fillna(fillvalue=-1)
     
     assert np.all(b.values == np.array([-1, -1, 1, 1, 1, 1, 1, 2, 2, 2]))
 
@@ -45,7 +45,7 @@ def test_fillna_reverse():
          [0, 0, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=np.uint8)
 
     b = t.b
-    b.fillna(reverse=True)
+    b = b.fillna(reverse=True)
     
     assert np.all(b.values == np.array([1, 1, 1, 2, 2, 2, 2, 2]))
 
@@ -61,6 +61,6 @@ def test_fillna_reverse_fillvalue():
          [0, 0, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=np.uint8)
 
     b = t.b
-    b.fillna(reverse=True, fillvalue=-1)
+    b = b.fillna(reverse=True, fillvalue=-1)
     
     assert np.all(b.values == np.array([1, 1, 1, 2, 2, 2, 2, 2, -1, -1]))

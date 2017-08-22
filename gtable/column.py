@@ -4,7 +4,8 @@ from gtable.lib import fillna_column
 from gtable.fast import apply_fast_add, apply_fast_mul, apply_fast_truediv, \
     apply_fast_sub, apply_fast_floordiv, apply_fast_and, apply_fast_or, \
     apply_fast_xor, apply_fast_pow, apply_fast_mod, apply_fast_ge, \
-    apply_fast_gt, apply_fast_le, apply_fast_lt, apply_fast_eq, apply_fast_ne
+    apply_fast_gt, apply_fast_le, apply_fast_lt, apply_fast_eq, apply_fast_ne, \
+    apply_mask_column, reindex_column
 
 
 class Column:
@@ -99,15 +100,35 @@ class Column:
         Fills the non available value sequentially with the previous
         available position.
         """
-        self.values, self.index = fillna_column(self.values,
-                                                self.index,
-                                                reverse,
-                                                fillvalue)
+        return Column(*fillna_column(self.values, self.index, reverse,
+                                     fillvalue))
 
     def reorder(self, order):
-        self.values = self.values[(np.cumsum(self.index) - 1)[order[
+        """
+        Reorder the column inplace
+        :param order:
+        :return:
+        """
+        self.values[:] = self.values[(np.cumsum(self.index) - 1)[order[
             self.index.astype(np.bool)]]]
-        self.index = self.index[order]
+        self.index[:] = self.index[order]
+
+    def mask(self, mask):
+        """
+        Apply mask on data to the data and the index out of place
+        :param mask:
+        :return:
+        """
+        return Column(*apply_mask_column(self.values, self.index, mask))
+
+    def reindex(self, index):
+        """
+        Reindex according to a global index
+
+        :param index:
+        :return:
+        """
+        return Column(*reindex_column(self.values, self.index, index))
 
 
 def apply_add(left: Column, right):

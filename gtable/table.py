@@ -148,6 +148,9 @@ class Table:
         return "<Table[ {} ] object at {}>".format(', '.join(column_info),
                                                    hex(id(self)))
 
+    def __contains__(self, item):
+        return item in self.keys
+
     @staticmethod
     def __dir__():
         return ['copy', 'add_column', 'stitch', 'merge', 'records', 'to_pandas',

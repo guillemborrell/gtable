@@ -27,6 +27,7 @@ gtable as a thin layer over numpy arrays.
 
    motivation
    basic
+   indexed
    api
    license
 
