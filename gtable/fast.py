@@ -180,7 +180,7 @@ def apply_fast_mod(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_gt(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -205,7 +205,7 @@ def apply_fast_gt(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_ge(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -230,7 +230,7 @@ def apply_fast_ge(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_lt(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -255,7 +255,7 @@ def apply_fast_lt(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_le(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -280,7 +280,7 @@ def apply_fast_le(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_and(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_left = 0
     cursor_right = 0
@@ -308,7 +308,7 @@ def apply_fast_and(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_or(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_left = 0
     cursor_right = 0
@@ -336,7 +336,7 @@ def apply_fast_or(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_xor(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_left = 0
     cursor_right = 0
@@ -370,7 +370,7 @@ def apply_fast_xor(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_eq(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -397,7 +397,7 @@ def apply_fast_eq(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_ne(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.uint8)
+    result = np.empty(index.sum(), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -444,8 +444,44 @@ def apply_mask_column(data, index, mask):
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def inner_join_low_level(filtered_data_left, index_left,
-                         filtered_data_right, index_right):
+def isin_sorted(base, test):
+    result = np.empty(base.shape, dtype=np.bool_)
+    cursor_result = 0
+    cursor_test = 0
+    for elem in base:
+        result[cursor_result] = False
+        for i in range(len(test)):
+            if elem < test[cursor_test]:
+                break
+            elif elem == test[cursor_test]:
+                result[cursor_result] = True
+                print('match', elem)
+                break
+            else:
+                # array exhausted
+                if cursor_test == len(test) - 1:
+                    break
+                # Advance test array
+                else:
+                    cursor_test += 1
+
+        cursor_result += 1
+
+    return result
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def inner_join_low_level(data_left, index_left,
+                         data_right, index_right,
+                         intersection):
+    data_filter_left = isin_sorted(data_left, intersection)
+    data_filter_right = isin_sorted(data_right, intersection)
+
+    filtered_data_left, index_left = apply_mask_column(
+        data_left, index_left, data_filter_left)
+    filtered_data_right, index_right = apply_mask_column(
+        data_right, index_right, data_filter_right)
+
     length = 0
     left_len = len(filtered_data_left)
     right_len = len(filtered_data_right)

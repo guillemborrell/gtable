@@ -31,16 +31,11 @@ def inner_join(table_left, table_right, column):
     if not np.all(common_right.values == np.sort(common_right.values)):
         raise ValueError('Trying to join with a non sorted column')
 
-    intersection = np.intersect1d(common_left.values, common_right.values)
-    data_filter_left = np.in1d(common_left.values, intersection)
-    data_filter_right = np.in1d(common_right.values, intersection)
-
-    common_left = common_left.mask(data_filter_left)
-    common_right = common_right.mask(data_filter_right)
+    common_rec = np.intersect1d(common_left.values, common_right.values)
 
     data_joined, global_left, global_right = inner_join_low_level(
         common_left.values, common_left.index,
-        common_right.values, common_right.index)
+        common_right.values, common_right.index, common_rec)
 
     data = list()
     index = list()

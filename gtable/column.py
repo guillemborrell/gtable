@@ -244,7 +244,7 @@ def apply_and(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_and(left.values, right.values,
                                        left.index, right.index)
-        return Column(result.astype(np.bool), index)
+        return Column(result, index)
 
     else:
         return Column(operator.and_(left.values.astype(np.bool), right),
@@ -255,7 +255,7 @@ def apply_or(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_or(left.values, right.values,
                                       left.index, right.index)
-        return Column(result.astype(np.bool), index)
+        return Column(result, index)
 
     else:
         return Column(operator.or_(left.values.astype(np.bool), right),
@@ -266,7 +266,7 @@ def apply_xor(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_xor(left.values, right.values,
                                        left.index, right.index)
-        return Column(result.astype(np.bool), index)
+        return Column(result, index)
 
     else:
         return Column(operator.xor(left.values.astype(np.bool), right),
@@ -277,7 +277,7 @@ def apply_eq(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_eq(left.values, right.values,
                                       left.index, right.index)
-        return Column(result.astype(np.bool), index)
+        return Column(result, index)
 
     else:
         return Column(operator.eq(left.values, right), left.index)
@@ -287,7 +287,7 @@ def apply_ne(left: Column, right):
     if type(right) == Column:
         result, index = apply_fast_ne(left.values, right.values,
                                       left.index, right.index)
-        return Column(result.astype(np.bool), index)
+        return Column(result, index)
 
     else:
         return Column(operator.ne(left.values, right), left.index)
