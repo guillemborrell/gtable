@@ -455,7 +455,6 @@ def isin_sorted(base, test):
                 break
             elif elem == test[cursor_test]:
                 result[cursor_result] = True
-                print('match', elem)
                 break
             else:
                 # array exhausted

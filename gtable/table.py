@@ -89,7 +89,7 @@ class Table:
         del self[k]
         idx = self.keys.index(k)
         self.keys.pop(idx)
-        self.index = np.delete(self.index, (idx), axis=0)
+        self.index = np.delete(self.index, idx, axis=0)
 
     def stitch(self, table):
         """Vertical (Table) concatenation."""
