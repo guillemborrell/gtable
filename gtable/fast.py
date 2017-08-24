@@ -470,11 +470,11 @@ def isin_sorted(base, test):
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def inner_join_low_level(data_left, index_left,
-                         data_right, index_right,
-                         intersection):
-    data_filter_left = isin_sorted(data_left, intersection)
-    data_filter_right = isin_sorted(data_right, intersection)
+def join_low_level(data_left, index_left,
+                   data_right, index_right,
+                   common_rec):
+    data_filter_left = isin_sorted(data_left, common_rec)
+    data_filter_right = isin_sorted(data_right, common_rec)
 
     filtered_data_left, index_left = apply_mask_column(
         data_left, index_left, data_filter_left)
@@ -489,15 +489,26 @@ def inner_join_low_level(data_left, index_left,
     stop_left = False
     stop_right = False
 
-    for i in range(left_len + right_len):
+    # Go through the whole data just to get the length of the result.
+    for i in range(left_len + right_len):  # Upper limit to prevent Inf loop
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
-            length += 1
-            if cur_left == left_len - 1:
-                stop_left = True
+            if stop_left:
+                if data_filter_right[cur_left]:
+                    length += 1
+                if cur_right == right_len - 1:
+                    stop_right = True
+                else:
+                    cur_right += 1
             else:
-                cur_left += 1
+                if data_filter_left[cur_left]:
+                    length += 1
+                if cur_left == left_len - 1:
+                    stop_left = True
+                else:
+                    cur_left += 1
 
         elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
+            # Both filters always true
             length += 1
             if cur_left == left_len - 1:
                 stop_left = True
@@ -509,15 +520,24 @@ def inner_join_low_level(data_left, index_left,
                 cur_right += 1
 
         else:
-            length += 1
-            if cur_right == right_len - 1:
-                stop_right = True
+            if stop_right:
+                if data_filter_left[cur_left]:
+                    length += 1
+                if cur_left == left_len - 1:
+                    stop_left = True
+                else:
+                    cur_left += 1
             else:
-                cur_right += 1
+                if data_filter_right[cur_left]:
+                    length += 1
+                if cur_right == right_len - 1:
+                    stop_right = True
+                else:
+                    cur_right += 1
 
         if stop_left and stop_right:
             break
-        
+
     data_joined = np.empty(length, dtype=filtered_data_left.dtype)
     order_left = np.empty(length, dtype=np.int64)
     order_right = np.empty(length, dtype=np.int64)
@@ -528,12 +548,21 @@ def inner_join_low_level(data_left, index_left,
 
     while added < length:
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
-            data_joined[added] = filtered_data_left[cur_left]
-            order_left[added] = cur_left
-            order_right[added] = cur_right
-            added += 1
-            if cur_left < left_len - 1:
-                cur_left += 1
+            if cur_left == left_len - 1:
+                data_joined[added] = filtered_data_right[cur_right]
+                order_left[added] = cur_left
+                order_right[added] = cur_right
+                added += 1
+                if cur_right < right_len - 1:
+                    cur_right += 1
+
+            else:
+                data_joined[added] = filtered_data_left[cur_left]
+                order_left[added] = cur_left
+                order_right[added] = cur_right
+                added += 1
+                if cur_left < left_len - 1:
+                    cur_left += 1
 
         elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
             data_joined[added] = filtered_data_left[cur_left]
@@ -546,18 +575,34 @@ def inner_join_low_level(data_left, index_left,
                 cur_right += 1
 
         else:
-            data_joined[added] = filtered_data_right[cur_right]
-            order_left[added] = cur_left
-            order_right[added] = cur_right
-            added += 1
-            if cur_right < right_len - 1:
-                cur_right += 1
+            if cur_right == right_len - 1:
+                data_joined[added] = filtered_data_left[cur_left]
+                order_left[added] = cur_left
+                order_right[added] = cur_right
+                added += 1
+                if cur_left < left_len - 1:
+                    cur_left += 1
+
+            else:
+                data_joined[added] = filtered_data_right[cur_right]
+                order_left[added] = cur_left
+                order_right[added] = cur_right
+                added += 1
+                if cur_right < right_len - 1:
+                    cur_right += 1
 
     index_mapping_left = np.arange(len(index_left))[index_left == 1]
     index_mapping_right = np.arange(len(index_right))[index_right == 1]
 
     global_left = index_mapping_left[order_left]
     global_right = index_mapping_right[order_right]
+
+    mask_left = isin_sorted(data_joined, data_left)
+    mask_right = isin_sorted(data_joined, data_right)
+
+    # Clean data with the mask
+    global_left[np.where(~mask_left)] = -1
+    global_right[np.where(~mask_right)] = -1
 
     return data_joined, global_left, global_right
 
