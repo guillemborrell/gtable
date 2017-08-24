@@ -101,8 +101,6 @@ def full_outer_join(table_left, table_right, column):
         common_left.values, common_left.index,
         common_right.values, common_right.index, common_rec)
 
-    print(data_joined, global_left, global_right)
-
     data = list()
     index = list()
     keys = list()

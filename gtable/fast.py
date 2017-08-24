@@ -549,10 +549,18 @@ def join_low_level(data_left, index_left,
     while added < length:
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
             if cur_left == left_len - 1:
+                # Clause for non overlapping data at the end of the array
+                if cur_right == 0:
+                    data_joined[added] = filtered_data_left[cur_left]
+                    order_left[added] = cur_left
+                    order_right[added] = cur_right
+                    added += 1
+
                 data_joined[added] = filtered_data_right[cur_right]
                 order_left[added] = cur_left
                 order_right[added] = cur_right
                 added += 1
+
                 if cur_right < right_len - 1:
                     cur_right += 1
 
@@ -576,10 +584,18 @@ def join_low_level(data_left, index_left,
 
         else:
             if cur_right == right_len - 1:
+                # Clause for non overlapping data at the end of the array
+                if cur_left == 0:
+                    data_joined[added] = filtered_data_right[cur_right]
+                    order_left[added] = cur_left
+                    order_right[added] = cur_right
+                    added += 1
+
                 data_joined[added] = filtered_data_left[cur_left]
                 order_left[added] = cur_left
                 order_right[added] = cur_right
                 added += 1
+
                 if cur_left < left_len - 1:
                     cur_left += 1
 
@@ -608,7 +624,7 @@ def join_low_level(data_left, index_left,
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def reindex_column(data, index, global_index):
+def reindex(index, global_index):
     data_len = 0
 
     for idx in global_index:
@@ -616,7 +632,7 @@ def reindex_column(data, index, global_index):
         if index[idx] == 1 and idx >= 0:
             data_len += 1
 
-    new_data = np.empty(data_len, dtype=data.dtype)
+    new_data_index = np.empty(data_len, dtype=np.int64)
     new_index = np.empty(len(global_index), dtype=np.uint8)
     data_index = index.cumsum() - np.array(1)
 
@@ -627,7 +643,7 @@ def reindex_column(data, index, global_index):
         if idx < 0:
             new_index[cursor] = 0
         elif index[idx]:
-            new_data[data_cursor] = data[int(data_index[idx])]
+            new_data_index[data_cursor] = int(data_index[idx])
             data_cursor += 1
             new_index[cursor] = 1
         else:
@@ -635,4 +651,11 @@ def reindex_column(data, index, global_index):
 
         cursor += 1
 
-    return new_data, new_index
+    return new_data_index, new_index
+
+
+# This is an important wrapper, since numba does not know how to deal with
+# unicode strings.
+def reindex_column(data, index, global_index):
+    new_data_index, new_index = reindex(index, global_index)
+    return data[new_data_index], new_index
