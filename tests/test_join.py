@@ -67,7 +67,7 @@ def test_outer_join_1():
     t3 = full_outer_join(t1, t2, 'a')
 
     assert np.all(t3.a.values == np.array([1, 2, 3, 4, 5, 6]))
-    assert np.all(t3.b.values == np.array([1, 2, 3]))
+    assert np.all(t3.b.values == np.array([1, 2, 3, 1]))
     assert np.all(t3.c.values == np.array([5, 6, 7]))
 
 

@@ -113,11 +113,11 @@ def full_outer_join(table_left, table_right, column):
         if i_column in table_left and table_right:
             cl = table_left.get(i_column)
             cr = table_right.get(i_column)
-            values, index = reindex_join_columns(
-                cl.values, cl.index,
-                cr.values, cr.index,
-                global_left, global_right)
-            print(values, index)
+            c_values, c_index = reindex_join_columns(
+                cl, cr, global_left, global_right)
+            keys.append(i_column)
+            data.append(c_values)
+            index.append(c_index)
 
         elif i_column in table_left:
             c = table_left.get(i_column)

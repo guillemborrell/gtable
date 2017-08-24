@@ -662,28 +662,111 @@ def reindex_column(data, index, global_index):
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def reindex_join(left_index, right_index,
+def reindex_join(left_data, right_data,
+                 left_index, right_index,
                  left_global_index, right_global_index):
-    new_data_index_left, new_index_left = reindex(left_index, left_global_index)
-    new_data_index_right, new_index_right = reindex(
-        right_index, right_global_index
-    )
-    return (new_data_index_left, new_index_left,
-            new_data_index_right, new_index_right)
+
+    len_left = 0
+    len_right = 0
+    idx_left_cur = 0
+    idx_right_cur = 0
+
+    for left_gidx, right_gidx in zip(left_global_index, right_global_index):
+        if left_gidx >= 0:
+            if left_index[idx_left_cur] > 0:
+                len_left += 1
+
+            else:
+                if right_gidx >= 0:
+                    if right_index[idx_right_cur] > 0:
+                        len_right += 1
+                    idx_right_cur += 1
+
+            idx_left_cur += 1
+                    
+        elif right_gidx >= 0:
+            if right_index[idx_right_cur] > 0:
+                len_right += 1
+
+            else:
+                if left_gidx >= 0:
+                    if left_index[idx_left_cur] > 0:
+                        len_left += 1
+                    idx_left_cur += 1
+
+            idx_right_cur += 1
+
+    data = np.empty(len_left + len_right, dtype=left_data.dtype)
+    left_global = np.empty(len_left, dtype=np.int64)
+    right_global = np.empty(len_right, dtype=np.int64)
+    index_global = np.zeros(len(left_global_index), dtype=np.uint8)
+    right_subindex = np.zeros(len(right_index), dtype=np.uint8)
+
+    idx_data = 0
+    idx_left = 0
+    idx_right = 0
+    idx_left_cur = 0
+    idx_right_cur = 0
+    idx_index = 0
+    
+    for left_gidx, right_gidx in zip(left_global_index, right_global_index):
+        if left_gidx >= 0:
+            if left_index[idx_left_cur] > 0:
+                left_global[idx_left] = left_gidx
+                index_global[idx_index] = 1
+                idx_left += 1
+                if right_gidx >= 0:
+                    idx_right_cur += 1
+
+            else:
+                if right_gidx >= 0:
+                    if right_index[idx_right_cur] > 0:
+                        right_global[idx_right] = right_gidx
+                        right_subindex[idx_right_cur] = 1
+                        index_global[idx_index] = 1
+                        idx_right += 1
+                    idx_right_cur += 1
+
+            idx_left_cur += 1
+                    
+        elif right_gidx >= 0:
+            if right_index[idx_right_cur] > 0:
+                right_global[idx_right] = right_gidx
+                right_subindex[idx_right_cur] = 1
+                index_global[idx_index] = 1
+                idx_right += 1
+                if left_gidx >= 0:
+                    idx_left_cur += 1
+
+            else:
+                if left_gidx >= 0:
+                    if left_index[idx_left_cur] > 0:
+                        left_global[idx_left] = left_gidx
+                        index_global[idx_index] = 1
+                        idx_left += 1
+                    idx_left_cur += 1
+
+            idx_right_cur += 1
+        idx_index += 1
+            
+    return left_global, right_global, index_global, right_subindex
 
 
 # Same wrapper for column join
-def reindex_join_columns(left_data, right_data,
-                         left_index, right_index,
+def reindex_join_columns(left_column, right_column,
                          left_global_index, right_global_index):
-    (new_data_index_left, new_index_left,
-     new_data_index_right, new_index_right) = reindex_join(
-        left_index, left_global_index, right_index, right_global_index
-    )
-    # This is just not a hstack
-    print(new_data_index_left, new_data_index_right)
-    new_data = np.hstack([left_data[new_data_index_left],
-                          right_data[new_data_index_right]])
-    new_index = new_index_left * new_index_right
 
-    return new_data, new_index
+    (left_global, right_global, new_index, right_subindex) = reindex_join(
+        left_column.values, right_column.values,
+        left_column.index, right_column.index,
+        left_global_index, right_global_index)
+
+    print(left_global, right_global, new_index, right_subindex)
+    print(left_column.index, right_column.index)
+    print(left_global_index, right_global_index)
+
+    
+    return np.insert(
+        left_column.values[left_global],
+        right_global,
+        right_column.values[right_subindex.astype(np.bool)]), new_index
