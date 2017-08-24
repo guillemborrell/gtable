@@ -1,7 +1,7 @@
 from gtable import Table
 import numpy as np
 from itertools import chain
-from gtable.fast import join_low_level
+from gtable.fast import join_low_level, reindex_join_columns
 
 
 def inner_join(table_left, table_right, column):
@@ -110,7 +110,16 @@ def full_outer_join(table_left, table_right, column):
     keys.append(column)
 
     for i_column in joined_columns:
-        if i_column in table_left:
+        if i_column in table_left and table_right:
+            cl = table_left.get(i_column)
+            cr = table_right.get(i_column)
+            values, index = reindex_join_columns(
+                cl.values, cl.index,
+                cr.values, cr.index,
+                global_left, global_right)
+            print(values, index)
+
+        elif i_column in table_left:
             c = table_left.get(i_column)
             c = c.reindex(global_left)
             keys.append(i_column)

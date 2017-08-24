@@ -659,3 +659,31 @@ def reindex(index, global_index):
 def reindex_column(data, index, global_index):
     new_data_index, new_index = reindex(index, global_index)
     return data[new_data_index], new_index
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def reindex_join(left_index, right_index,
+                 left_global_index, right_global_index):
+    new_data_index_left, new_index_left = reindex(left_index, left_global_index)
+    new_data_index_right, new_index_right = reindex(
+        right_index, right_global_index
+    )
+    return (new_data_index_left, new_index_left,
+            new_data_index_right, new_index_right)
+
+
+# Same wrapper for column join
+def reindex_join_columns(left_data, right_data,
+                         left_index, right_index,
+                         left_global_index, right_global_index):
+    (new_data_index_left, new_index_left,
+     new_data_index_right, new_index_right) = reindex_join(
+        left_index, left_global_index, right_index, right_global_index
+    )
+    # This is just not a hstack
+    print(new_data_index_left, new_data_index_right)
+    new_data = np.hstack([left_data[new_data_index_left],
+                          right_data[new_data_index_right]])
+    new_index = new_index_left * new_index_right
+
+    return new_data, new_index
