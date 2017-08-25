@@ -109,4 +109,5 @@ def test_outer_join_3():
 
     t3 = full_outer_join(t1, t2, 'idx', check_sorted=False)
 
-    assert False
+    assert np.all(t3.G.values == np.hstack([t1.G.values, t2.G.values]))
+
