@@ -664,6 +664,7 @@ def reindex_column(data, index, global_index):
 @jit(nopython=True, nogil=True, cache=True)
 def reindex_join(left_index, right_index,
                  left_global_index, right_global_index):
+    # TODO: Clean unused variables.
 
     len_left = 0
     len_right = 0
@@ -756,22 +757,26 @@ def reindex_join(left_index, right_index,
             idx_right_cur += 1
         idx_index += 1
 
-    return data_index, index_global, left_global, right_global
+    # Separate positive parts (left) from negative (right)
+    # To be accelerated
+    lid = (data_index >= 0) & \
+          (left_global_index[index_global.astype(np.bool_)] >= 0)
+    rid = (data_index < 0) & \
+          (right_global_index[index_global.astype(np.bool_)] >= 0)
+
+    return data_index, index_global, left_global, right_global, lid, rid, idx_data
 
 
 # Same wrapper for column join
 def reindex_join_columns(left_column, right_column,
                          left_global_index, right_global_index):
 
-    (data_index, new_index, left_global, right_global) = reindex_join(
+    (data_index, new_index, left_global, right_global, lid, rid, size
+     ) = reindex_join(
         left_column.index, right_column.index,
         left_global_index, right_global_index)
 
-    # Separate positive parts (left) from negative (right)
-    lid = (data_index >= 0) & (left_global_index[new_index.astype(np.bool_)] >= 0)
-    rid = (data_index < 0) & (right_global_index[new_index.astype(np.bool_)] >= 0)
-
-    data = np.empty(new_index.sum(), dtype=left_column.values.dtype)
+    data = np.empty(size, dtype=left_column.values.dtype)
     data[lid] = left_column.values[left_global]
     data[rid] = right_column.values[right_global]
 
