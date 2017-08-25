@@ -88,3 +88,25 @@ def test_outer_join_2():
 
     assert np.all(t3.A.values == np.array(['A0', 'A1', 'A2', 'A3',
                                            'A4', 'A5', 'A6', 'A7']))
+
+
+def test_outer_join_3():
+    t1 = Table({'A': np.random.rand(100),
+                'B': np.random.rand(100),
+                'C': np.random.rand(100),
+                'D': np.random.rand(100),
+                'E': np.random.rand(100),
+                'F': np.random.rand(100),
+                'G': np.random.rand(100),
+                'idx': np.arange(100)})
+
+    t2 = Table({'A': np.random.rand(100),
+                'G': np.random.rand(100),
+                'idx': np.arange(100, 200)})
+
+    print(t1)
+    print(t2)
+
+    t3 = full_outer_join(t1, t2, 'idx', check_sorted=False)
+
+    assert False

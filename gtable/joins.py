@@ -68,13 +68,15 @@ def inner_join(table_left, table_right, column):
     return res
 
 
-def full_outer_join(table_left, table_right, column):
+def full_outer_join(table_left, table_right, column, check_sorted=True):
     """
     Inner join. If columns are repeated, the left table has preference.
 
     :param table_left:
     :param table_right:
     :param column:
+    :param check_sorted: If True may increase performance, but breaks if the
+      column used as index is not sorted.
     :return:
     """
     if column not in table_left.keys:
@@ -89,11 +91,12 @@ def full_outer_join(table_left, table_right, column):
     common_left = table_left.get(column)
     common_right = table_right.get(column)
 
-    if not np.all(common_left.values == np.sort(common_left.values)):
-        raise ValueError('Trying to join with a non sorted column')
+    if check_sorted:
+        if not np.all(common_left.values == np.sort(common_left.values)):
+            raise ValueError('Trying to join with a non sorted column')
 
-    if not np.all(common_right.values == np.sort(common_right.values)):
-        raise ValueError('Trying to join with a non sorted column')
+        if not np.all(common_right.values == np.sort(common_right.values)):
+            raise ValueError('Trying to join with a non sorted column')
 
     common_rec = np.union1d(common_left.values, common_right.values)
 
@@ -110,7 +113,7 @@ def full_outer_join(table_left, table_right, column):
     keys.append(column)
 
     for i_column in joined_columns:
-        if i_column in table_left and table_right:
+        if i_column in table_left and i_column in table_right:
             cl = table_left.get(i_column)
             cr = table_right.get(i_column)
             c_values, c_index = reindex_join_columns(
