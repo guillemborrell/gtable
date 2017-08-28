@@ -37,7 +37,12 @@ class Table:
         for i, (k, v) in enumerate(data.items()):
             # If the column is a list, cast it to a numpy array
             if type(v) == list:
-                self.data.append(np.array(v))
+                # TODO: Remove ASAP
+                # You may get a list of Timestamps. Specific to NFQ
+                if type(v[0]) == pd.Timestamp:
+                    self.data.append(pd.DatetimeIndex(v).values)
+                else:
+                    self.data.append(np.array(v))
                 self.keys.append(k)
                 length_last = _check_length(i, k, len(v), length_last)
                     

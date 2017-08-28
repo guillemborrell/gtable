@@ -291,6 +291,12 @@ def add_column(table, k, v, index=None, align='top'):
         raise KeyError("Key {} already present".format(k))
 
     if type(v) == list:
+        # TODO: Remove ASAP
+        # You may get a list of Timestamps. Specific to NFQ
+        if type(v[0]) == pd.Timestamp:
+            table.data.append(pd.DatetimeIndex(v).values)
+        else:
+            table.data.append(np.array(v))
         table.data.append(np.array(v))
         table.keys.append(k)
 
