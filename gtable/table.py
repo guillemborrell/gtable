@@ -3,7 +3,8 @@ import pandas as pd
 
 from gtable.column import Column
 from gtable.lib import records, stitch_table, add_column, \
-    merge_table, sort_table, filter_table, dropnan_table
+    merge_table, sort_table, filter_table, dropnan_table, first_record, \
+    last_record
 
 
 def _check_length(i, k, this_length, length_last):
@@ -91,7 +92,7 @@ class Table:
         self.keys.pop(idx)
         self.index = np.delete(self.index, idx, axis=0)
 
-    def stitch(self, table):
+    def stack(self, table):
         """Vertical (Table) concatenation."""
         stitch_table(self, table)
 
@@ -112,6 +113,14 @@ class Table:
         t = Table()
         t.data, t.keys, t.index = filter_table(self, predicate)
         return t
+
+    def first_record(self, fill=False):
+        """Returns the first record of the table"""
+        return first_record(self, fill)
+
+    def last_record(self, fill=False):
+        """Returns the last record of the table"""
+        return last_record(self, fill)
 
     def to_pandas(self, fill=False):
         """Translate the table to a pandas dataframe"""

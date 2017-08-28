@@ -32,41 +32,17 @@ def test_hcat_table():
 def test_vcat_table():
     t = Table({'a': [1, 2, 3], 'b': np.array([4,5,6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4,5,6])})
-    t.stitch(t1)
+    t.stack(t1)
 
     assert np.all(t.index == np.array([[1, 1, 1, 1, 1, 1],
                                        [1, 1, 1, 0, 0, 0],
                                        [0, 0, 0, 1, 1, 1]], dtype=np.uint8))
 
 
-def test_records():
-    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
-    t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
-    t.stitch(t1)
-
-    records = [r for r in t.records()]
-    assert records == [
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5},
-        {'a': 3, 'b': 6},
-        {'a': 1, 'd': 4},
-        {'a': 2, 'd': 5},
-        {'a': 3, 'd': 6}]
-
-    records = [r for r in t.records(fill=True)]
-    assert records == [
-        {'a': 1, 'b': 4, 'd': np.nan},
-        {'a': 2, 'b': 5, 'd': np.nan},
-        {'a': 3, 'b': 6, 'd': np.nan},
-        {'a': 1, 'b': np.nan, 'd': 4},
-        {'a': 2, 'b': np.nan, 'd': 5},
-        {'a': 3, 'b': np.nan, 'd': 6}]
-
-
 def test_compute_column():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
-    t.stitch(t1)
+    t.stack(t1)
 
     t.c = t.a + t.a/2
     records = [r for r in t.records()]
@@ -82,7 +58,7 @@ def test_compute_column():
 def test_compute_wrong_size():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
     t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
-    t.stitch(t1)
+    t.stack(t1)
 
     t.c = t.a + t.b/2
     assert np.all(t.c.values == np.array([3, 4.5, 6]))
@@ -110,7 +86,7 @@ def test_vcat_heterogeneous():
     tb.add_column('schedule', np.array(['first']))
     tb1 = tb.copy()
     tb1.schedule.values[0] = 'second'
-    tb.stitch(tb1)
+    tb.stack(tb1)
     assert np.all(tb.index == np.array([[1, 1, 1, 1, 1, 1],
                                         [1, 1, 1, 1, 1, 1],
                                         [1, 0, 0, 1, 0, 0]], dtype=np.uint8))

@@ -170,6 +170,56 @@ def records(table, fill=False):
         counters[np.where(record)] += 1
 
         yield record_data
+
+
+def first_record(table, fill=False):
+    """
+    Return the first record of the table
+
+    :param table: a Table.
+    :param fill: True if empty values have to be replaced with NaN
+    :return: Generator with each record as a dictionary
+    """
+    keys = np.array(table.keys)
+    record = table.index[:, 0]
+
+    selected_keys = keys[np.where(record)]
+
+    if fill:
+        record_data = {
+            k: table.data[table.keys.index(k)][0] for k in selected_keys}
+        record_data.update(
+            {k: np.nan for k in keys if k not in selected_keys})
+    else:
+        record_data = {
+            k: table.data[table.keys.index(k)][0] for k in selected_keys}
+
+    return record_data
+
+
+def last_record(table, fill=False):
+    """
+    Return the last record of the table
+
+    :param table: a Table.
+    :param fill: True if empty values have to be replaced with NaN
+    :return: Generator with each record as a dictionary
+    """
+    keys = np.array(table.keys)
+    record = table.index[:, -1]
+
+    selected_keys = keys[np.where(record)]
+
+    if fill:
+        record_data = {
+            k: table.data[table.keys.index(k)][0] for k in selected_keys}
+        record_data.update(
+            {k: np.nan for k in keys if k not in selected_keys})
+    else:
+        record_data = {
+            k: table.data[table.keys.index(k)][0] for k in selected_keys}
+
+    return record_data
         
 
 def stitch_table(left_table, right_table):

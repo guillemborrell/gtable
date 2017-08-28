@@ -9,7 +9,7 @@ def test_sort():
     table = Table({'a': a, 'b': b})
 
     # Concatenate another table to have one longer column
-    table.stitch(Table({'b': [1, 2, 3, 4]}))
+    table.stack(Table({'b': [1, 2, 3, 4]}))
 
     sort_table(table, 'a')
 
