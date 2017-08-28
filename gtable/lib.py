@@ -297,7 +297,6 @@ def add_column(table, k, v, index=None, align='top'):
             table.data.append(pd.DatetimeIndex(v).values)
         else:
             table.data.append(np.array(v))
-        table.data.append(np.array(v))
         table.keys.append(k)
 
     elif type(v) == np.ndarray:
