@@ -700,7 +700,6 @@ def reindex_join(left_index, right_index,
     left_global = np.empty(len_left, dtype=np.int64)
     right_global = np.empty(len_right, dtype=np.int64)
     index_global = np.zeros(len(left_global_index), dtype=np.uint8)
-    right_subindex = np.zeros(len(right_index), dtype=np.uint8)
 
     idx_data = 0
     idx_left = 0
@@ -724,7 +723,6 @@ def reindex_join(left_index, right_index,
                 if right_gidx >= 0:
                     if right_index[idx_right_cur] > 0:
                         right_global[idx_right] = right_gidx
-                        right_subindex[idx_right_cur] = 1
                         index_global[idx_index] = 1
                         idx_right += 1
                         data_index[idx_data] = -right_gidx - 1
@@ -736,7 +734,6 @@ def reindex_join(left_index, right_index,
         elif right_gidx >= 0:
             if right_index[idx_right_cur] > 0:
                 right_global[idx_right] = right_gidx
-                right_subindex[idx_right_cur] = 1
                 index_global[idx_index] = 1
                 idx_right += 1
                 data_index[idx_data] = -right_gidx - 1
@@ -764,7 +761,8 @@ def reindex_join(left_index, right_index,
     rid = (data_index < 0) & \
           (right_global_index[index_global.astype(np.bool_)] >= 0)
 
-    return data_index, index_global, left_global, right_global, lid, rid, idx_data
+    return (data_index, index_global, left_global, right_global,
+            lid, rid, idx_data)
 
 
 # Same wrapper for column join
