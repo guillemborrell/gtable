@@ -200,7 +200,7 @@ def apply_fast_mod(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=np.float64)
+        result = np.empty(index.sum(), dtype=result_dtype)
 
         cursor_result = 0
         cursor_left = 0
