@@ -1,30 +1,37 @@
-from numba import jit
+from numba import jit, generated_jit, types
 import numpy as np
 
 
-@jit(nopython=True, nogil=True, cache=True)
+@generated_jit(nopython=True, nogil=True, cache=True)
 def apply_fast_add(value_left, value_right, index_left, index_right):
-    index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.float64)
+    if value_left.dtype == types.int64 and value_right.dtype == types.int64:
+        result_dtype = np.int64
+    else:
+        result_dtype = np.float64
 
-    cursor_result = 0
-    cursor_left = 0
-    cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
-            result[cursor_result] = value_left[cursor_left] +\
-                                    value_right[cursor_right]
-            cursor_result += 1
-            cursor_left += 1
-            cursor_right += 1
+    def f(value_left, value_right, index_left, index_right):
+        index = index_left * index_right
+        result = np.empty(index.sum(), dtype=result_dtype)
+        cursor_result = 0
+        cursor_left = 0
+        cursor_right = 0
+        for i in range(len(index_left)):
+            if index_left[i] & index_right[i]:
+                result[cursor_result] = value_left[cursor_left] +\
+                                        value_right[cursor_right]
+                cursor_result += 1
+                cursor_left += 1
+                cursor_right += 1
 
-        elif index_left[i]:
-            cursor_left += 1
+            elif index_left[i]:
+                cursor_left += 1
 
-        elif index_right[i]:
-            cursor_right += 1
+            elif index_right[i]:
+                cursor_right += 1
 
-    return result, index
+        return result, index
+
+    return f
 
 
 @jit(nopython=True, nogil=True, cache=True)
