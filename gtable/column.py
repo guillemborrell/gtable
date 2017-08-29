@@ -87,6 +87,7 @@ class Column:
         return Column(-self.values, self.index)
 
     def __getitem__(self, i):
+        # TODO: This algorithm makes getitem O(N)
         if self.index[i]:
             return self.values[int(self.index[:i+1].sum()) - 1]
         else:
@@ -94,6 +95,14 @@ class Column:
 
     def __len__(self):
         return len(self.index)
+
+    def copy(self):
+        """Return a copy of the column"""
+        return Column(self.values[:], self.index[:])
+
+    def astype(self, dtype):
+        """Changes the (numpy) datatype of the values"""
+        self.values = self.values.astype(dtype)
 
     def fillna(self, reverse=False, fillvalue=None):
         """
