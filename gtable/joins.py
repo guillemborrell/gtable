@@ -20,7 +20,7 @@ def inner_join(table_left, table_right, column):
         raise ValueError('{} not in right table'.format(column))
 
     all_columns = set(chain(table_left.keys, table_right.keys))
-    joined_columns = all_columns - set([column])
+    joined_columns = all_columns - {column}
 
     common_left = table_left.get(column)
     common_right = table_right.get(column)
@@ -86,7 +86,7 @@ def full_outer_join(table_left, table_right, column, check_sorted=True):
         raise ValueError('{} not in right table'.format(column))
 
     all_columns = set(chain(table_left.keys, table_right.keys))
-    joined_columns = all_columns - set([column])
+    joined_columns = all_columns - {column}
 
     common_left = table_left.get(column)
     common_right = table_right.get(column)

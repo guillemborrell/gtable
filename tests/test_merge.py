@@ -1,4 +1,4 @@
-from gtable import Table
+from gtable import Table, merge
 import numpy as np
 
 
@@ -65,4 +65,21 @@ def test_merge_3():
     assert np.all(table_a.a.index == np.array([1, 1, 1, 1, 1, 1]))
     assert np.all(table_a.b.index == np.array([1, 0, 1, 0, 1, 0]))
     assert np.all(table_a.c.index == np.array([0, 1, 0, 1, 0, 1]))
+
+
+def test_merge_4():
+    table_a = Table()
+    table_b = Table()
+
+    table_a.add_column('a', [1])
+    table_a.add_column('b', [1])
+
+    table_b.add_column('a', [1, 1, 1])
+    table_b.add_column('c', [1, 2, 3])
+
+    c = merge(table_a, table_b, 'a')
+    assert np.all(c.a.index == np.array([1, 1, 1, 1]))
+    assert np.all(c.b.index == np.array([1, 0, 0, 0]))
+    assert np.all(c.c.index == np.array([0, 1, 1, 1]))
+
 

@@ -1,4 +1,3 @@
-from itertools import chain
 import numpy as np
 import pandas as pd
 
@@ -70,7 +69,7 @@ def merge_table(table_left, table_right, column):
         raise ValueError('Merge only with a dense column')
 
     insertions = np.searchsorted(left_data, right_data, sorter=sorter)
-    all_columns = set(chain(table_left.keys, table_right.keys))       
+    all_columns = set(table_left.keys) | set(table_right.keys)
 
     width = len(all_columns)
     length = left_length + right_length
@@ -232,7 +231,7 @@ def stack_table_inplace(left_table, right_table):
     :return: 
     """
     # First step is to rearrange the bitmap index if needed
-    joined_columns = set(chain(left_table.keys, right_table.keys))
+    joined_columns = set(left_table.keys) | set(right_table.keys)
     hspill = len(joined_columns) - left_table.index.shape[0]
     before_growth = left_table.index.shape
 
@@ -286,7 +285,7 @@ def stack_table(left_table, right_table):
     :return:
     """
     # First step is to rearrange the bitmap index if needed
-    joined_columns = set(chain(left_table.keys, right_table.keys))
+    joined_columns = set(left_table.keys) | set(right_table.keys)
     hspill = len(joined_columns) - left_table.index.shape[0]
     before_growth = left_table.index.shape
 
