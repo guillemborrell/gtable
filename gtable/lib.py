@@ -330,6 +330,26 @@ def stack_table(left_table, right_table):
             new_cols_added += 1
 
 
+def from_chunks(tables):
+    """
+    Create a table from chunks
+
+    :param tables: Iterable of tables.
+    :return:
+    """
+    for i, table in enumerate(tables):
+        if i == 0:
+            # Some things to do with the first table
+            result = table.copy()
+
+        else:
+            result.index = np.hstack([result.index, table.index])
+            for rk, tk in zip(result.keys, table.keys):
+                result[rk] = np.hstack([result[rk], table[tk]])
+
+    return result
+
+
 def add_column(table, k, v, index=None, align='top'):
     """
     Adds a column to a table inplace

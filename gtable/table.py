@@ -4,7 +4,7 @@ import pandas as pd
 from gtable.column import Column
 from gtable.lib import records, stack_table_inplace, add_column, \
     merge_table, sort_table, filter_table, dropnan_table, first_record, \
-    last_record, fillna_column
+    last_record, fillna_column, from_chunks
 
 
 def _check_length(i, k, this_length, length_last):
@@ -167,6 +167,16 @@ class Table:
         table = {'idx': dataframe.index.values}
         table.update({k: dataframe[k].values for k in dataframe})
         return cls(table)
+
+    @staticmethod
+    def from_chunks(chunks):
+        """
+        Create a table from table chunks
+
+        :param chunks:
+        :return:
+        """
+        return from_chunks(chunks)
 
     def __repr__(self):
         column_info = list()
