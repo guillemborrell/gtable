@@ -104,10 +104,6 @@ def test_outer_join_3():
                 'G': np.random.rand(100),
                 'idx': np.arange(100, 200)})
 
-    print(t1)
-    print(t2)
-
     t3 = full_outer_join(t1, t2, 'idx', check_sorted=False)
 
     assert np.all(t3.G.values == np.hstack([t1.G.values, t2.G.values]))
-

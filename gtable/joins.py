@@ -20,7 +20,7 @@ def inner_join(table_left, table_right, column):
         raise ValueError('{} not in right table'.format(column))
 
     all_columns = set(chain(table_left.keys, table_right.keys))
-    joined_columns = all_columns - set(column)
+    joined_columns = all_columns - set([column])
 
     common_left = table_left.get(column)
     common_right = table_right.get(column)
@@ -86,7 +86,7 @@ def full_outer_join(table_left, table_right, column, check_sorted=True):
         raise ValueError('{} not in right table'.format(column))
 
     all_columns = set(chain(table_left.keys, table_right.keys))
-    joined_columns = all_columns - set(column)
+    joined_columns = all_columns - set([column])
 
     common_left = table_left.get(column)
     common_right = table_right.get(column)
@@ -113,7 +113,7 @@ def full_outer_join(table_left, table_right, column, check_sorted=True):
     keys.append(column)
 
     for i_column in joined_columns:
-        if i_column in table_left and i_column in table_right:
+        if (i_column in table_left) and (i_column in table_right):
             cl = table_left.get(i_column)
             cr = table_right.get(i_column)
             c_values, c_index = reindex_join_columns(
