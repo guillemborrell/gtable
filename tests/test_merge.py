@@ -61,7 +61,6 @@ def test_merge_3():
     )
     table_a.merge(table_b, 'a')
 
-    print(table_a.index)
     assert np.all(table_a.a.index == np.array([1, 1, 1, 1, 1, 1]))
     assert np.all(table_a.b.index == np.array([1, 0, 1, 0, 1, 0]))
     assert np.all(table_a.c.index == np.array([0, 1, 0, 1, 0, 1]))

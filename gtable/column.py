@@ -141,6 +141,15 @@ class Column:
 
     def date_range(self, fr='1970-01-01', to='2262-01-01', pick_fr=True,
                    pick_to=True):
+        """
+        Filter a column by date range.
+
+        :param fr:
+        :param to:
+        :param pick_fr:
+        :param pick_to:
+        :return:
+        """
         if isinstance(self.values.dtype, np.datetime64):
             print(self.values.dtype)
             raise ValueError("Method valid only with dates")
