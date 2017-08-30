@@ -147,14 +147,19 @@ class Table:
         """
         Fillna on a column inplace
 
-        :param key:
+        :param key: string or list
         :param reverse:
         :param fillvalue:
         :return:
         """
-        self[key], self.index[self.keys.index(key), :] = fillna_column(
-            self[key], self._index_column(key), reverse, fillvalue)
+        if (type(key) == list) or (type(key) == tuple):
+            for k in key:
+                self[k], self.index[self.keys.index(k), :] = fillna_column(
+                    self[k], self._index_column(k), reverse, fillvalue)
 
+        else:
+            self[key], self.index[self.keys.index(key), :] = fillna_column(
+                self[key], self._index_column(key), reverse, fillvalue)
 
     @classmethod
     def from_pandas(cls, dataframe):
