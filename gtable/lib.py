@@ -222,9 +222,9 @@ def last_record(table, fill=False):
     return record_data
         
 
-def stitch_table(left_table, right_table):
+def stack_table_inplace(left_table, right_table):
     """
-    Stitch a the right table to the bottom of the left table. Modifies
+    Stack a the right table to the bottom of the left table. Modifies
     the left_table inplace.
     
     :param left_table: 
@@ -274,8 +274,63 @@ def stitch_table(left_table, right_table):
             left_table.data.append(right_table.data[new_index])
             left_table.keys.append(new_key)
             new_cols_added += 1
-            
-            
+
+
+def stack_table(left_table, right_table):
+    """
+    Stack a the right table to the bottom of the left table. Modifies
+    the left_table inplace.
+
+    :param left_table:
+    :param right_table:
+    :return:
+    """
+    # First step is to rearrange the bitmap index if needed
+    joined_columns = set(chain(left_table.keys, right_table.keys))
+    hspill = len(joined_columns) - left_table.index.shape[0]
+    before_growth = left_table.index.shape
+
+    tindex = right_table.index.copy()
+
+    # Add the horizontal spill (more columns)
+    if joined_columns != set(left_table.keys):
+        left_table.index = np.concatenate(
+            [left_table.index, np.zeros(
+                (hspill, left_table.index.shape[1]), dtype=np.uint8
+            )])
+
+    # Add the vertical spill (the data)
+    left_table.index = np.concatenate(
+        [left_table.index, np.zeros(
+            (left_table.index.shape[0], tindex.shape[1]), dtype=np.uint8
+        )], axis=1)
+
+    # Include the keys present in both tables with this light nested loop.
+    for old_key in left_table.keys:
+        for new_key in right_table.keys:
+            if new_key == old_key:
+                right_table_index = right_table.keys.index(new_key)
+                left_table_index = left_table.keys.index(old_key)
+                left_table.index[left_table.keys.index(old_key),
+                before_growth[1]:] = tindex[right_table_index, :]
+                left_table.data[
+                    left_table.keys.index(old_key)] = np.concatenate(
+                    [left_table.data[left_table_index],
+                     right_table.data[right_table_index]]
+                )
+
+    # Include keys that are not added in the previous table
+    new_cols_added = 0
+    for new_key in right_table.keys:
+        if new_key not in left_table.keys:
+            new_index = right_table.keys.index(new_key)
+            left_table.index[before_growth[0] + new_cols_added,
+            before_growth[1]:] = tindex[new_index, :]
+            left_table.data.append(right_table.data[new_index])
+            left_table.keys.append(new_key)
+            new_cols_added += 1
+
+
 def add_column(table, k, v, index=None, align='top'):
     """
     Adds a column to a table inplace

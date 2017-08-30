@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 from gtable.column import Column
-from gtable.lib import records, stitch_table, add_column, \
+from gtable.lib import records, stack_table_inplace, add_column, \
     merge_table, sort_table, filter_table, dropnan_table, first_record, \
-    last_record
+    last_record, fillna_column
 
 
 def _check_length(i, k, this_length, length_last):
@@ -99,7 +99,7 @@ class Table:
 
     def stack(self, table):
         """Vertical (Table) concatenation."""
-        stitch_table(self, table)
+        stack_table_inplace(self, table)
 
     def merge(self, table, column):
         """Merge two tables using two dense and sorted columns"""
@@ -140,7 +140,21 @@ class Table:
         dropnan_table(self)
 
     def get(self, key):
+        """Gets a column"""
         return Column(self.data[self.keys.index(key)], self._index_column(key))
+
+    def fillna_column(self, key, reverse=False, fillvalue=None):
+        """
+        Fillna on a column inplace
+
+        :param key:
+        :param reverse:
+        :param fillvalue:
+        :return:
+        """
+        self[key], self.index[self.keys.index(key), :] = fillna_column(
+            self[key], self._index_column(key), reverse, fillvalue)
+
 
     @classmethod
     def from_pandas(cls, dataframe):

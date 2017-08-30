@@ -102,15 +102,15 @@ class Column:
 
     def astype(self, dtype):
         """Changes the (numpy) datatype of the values"""
-        self.values = self.values.astype(dtype)
+        self.values[:] = self.values.astype(dtype)
 
     def fillna(self, reverse=False, fillvalue=None):
         """
         Fills the non available value sequentially with the previous
-        available position.
+        available position. Operates inplace.
         """
-        return Column(*fillna_column(self.values, self.index, reverse,
-                                     fillvalue))
+        self.values, self.index = fillna_column(self.values, self.index,
+                                                reverse, fillvalue)
 
     def reorder(self, order):
         """

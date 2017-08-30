@@ -21,3 +21,10 @@ def test_add_align():
 
     assert np.all(c.values == np.array([5, 7, 9]))
     assert c.values.dtype == np.int64
+
+
+def test_column_assign():
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t['a'][0] = 0
+
+    assert np.all(t.a.values == np.array([0, 2, 3]))
