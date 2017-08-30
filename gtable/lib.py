@@ -367,7 +367,7 @@ def add_column(table, k, v, index=None, align='top'):
     if type(v) == list:
         # TODO: Remove ASAP
         # You may get a list of Timestamps. Specific to NFQ
-        if type(v[0]) == pd.Timestamp:
+        if len(v) > 0 and type(v[0]) == pd.Timestamp:
             table.data.append(pd.DatetimeIndex(v).values)
         else:
             table.data.append(np.array(v))

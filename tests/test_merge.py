@@ -83,3 +83,20 @@ def test_merge_4():
     assert np.all(c.c.index == np.array([0, 1, 1, 1]))
 
 
+def test_merge_empty_1():
+    table_a = Table()
+    table_b = Table()
+
+    table_a.add_column('a', [])
+    table_a.add_column('b', [])
+
+    table_b.add_column('a', [1, 1, 1])
+    table_b.add_column('c', [1, 2, 3])
+
+    c = merge(table_a, table_b, 'a')
+    assert np.all(c.a.index == np.array([1, 1, 1]))
+    assert np.all(c.b.index == np.array([0, 0, 0]))
+    assert np.all(c.c.index == np.array([1, 1, 1]))
+
+
+
