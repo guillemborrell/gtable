@@ -28,3 +28,19 @@ def test_column_assign():
     t['a'][0] = 0
 
     assert np.all(t.a.values == np.array([0, 2, 3]))
+
+
+def test_date_range():
+    t = Table(
+        {'a': np.array([0, 1, 2, 3, 4, 5, 6]).astype('datetime64[D]'),
+         'b': np.array([1, 2, 3, 4, 5, 6, 7])}
+    )
+
+    assert np.count_nonzero(
+        t.a.date_range(to='1970-01-05').values) == 5
+    assert np.count_nonzero(
+        t.a.date_range(to='1970-01-05', pick_to=False).values) == 4
+    assert np.count_nonzero(
+        t.a.date_range(fr='1970-01-05').values) == 3
+    assert np.count_nonzero(
+        t.a.date_range(fr='1970-01-05', pick_fr=False).values) == 2

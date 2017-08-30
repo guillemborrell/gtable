@@ -139,6 +139,30 @@ class Column:
         """
         return Column(*reindex_column(self.values, self.index, index))
 
+    def date_range(self, fr='1970-01-01', to='2262-01-01', pick_fr=True,
+                   pick_to=True):
+        if isinstance(self.values.dtype, np.datetime64):
+            print(self.values.dtype)
+            raise ValueError("Method valid only with dates")
+
+        if type(fr) == str:
+            fr = np.datetime64(fr)
+
+        if type(to) == str:
+            to = np.datetime64(to)
+
+        if pick_fr:
+            before = self.values >= fr
+        else:
+            before = self.values > fr
+
+        if pick_to:
+            after = self.values <= to
+        else:
+            after = self.values < to
+
+        return Column(before & after, self.index)
+
 
 def apply_add(left: Column, right):
     if type(right) == Column:
