@@ -139,9 +139,23 @@ class Table:
         """Drop the NaNs and leave missing values instead"""
         dropnan_table(self)
 
-    def get(self, key):
-        """Gets a column"""
-        return Column(self.data[self.keys.index(key)], self._index_column(key))
+    def get(self, key, copy=False):
+        """Gets a column or a table with columns"""
+        if type(key) == str:
+            return Column(self[key], self._index_column(key))
+
+        elif type(key) == list or type(key) == tuple:
+            t = Table()
+            indices = [self.keys.index(k) for k in key]
+            if copy:
+                t.data = [self.data[idx].copy() for idx in indices]
+                t.index = self.index[indices, :][:, :]
+            else:
+                t.data = [self.data[idx].copy() for idx in indices]
+                t.index = self.index[indices, :]
+            t.keys = key
+
+            return t
 
     def fillna_column(self, key, reverse=False, fillvalue=None):
         """
