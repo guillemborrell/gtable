@@ -826,3 +826,105 @@ def reindex_join_columns(left_column, right_column,
     data[rid] = right_column.values[right_global]
 
     return data, new_index
+
+
+@generated_jit(nopython=True, nogil=True, cache=True)
+def reduce_sum(key_data, key_index, col_data, col_index, size):
+    result_dtype = col_data.dtype
+
+    def f(key_data, key_index, col_data, col_index, size):
+        prev_key_data = key_data[0]
+
+        reduction_started = False
+        new_index = np.zeros(size, dtype=np.uint8)
+        reduced = np.empty(size, dtype=result_dtype)
+        key_data_cursor = -1
+        col_data_cursor = -1
+        new_index_cursor = -1
+        red_index = 0
+
+        for idxk, idxd in zip(key_index, col_index):
+            if idxk == 1:
+                key_data_cursor += 1
+                if prev_key_data != key_data[key_data_cursor] or key_data_cursor == 0:
+                    new_index_cursor += 1
+
+            if idxd == 1:
+                col_data_cursor += 1
+
+            if idxk == idxd == 1:
+                if reduction_started:
+                    if prev_key_data == key_data[key_data_cursor]:
+                        # Here is the reduction of repeated keys
+                        reduced[red_index] += col_data[col_data_cursor]
+                    else:
+                        red_index += 1
+                        # Here is the addition of the first key
+                        reduced[red_index] = col_data[col_data_cursor]
+                        new_index[new_index_cursor] = 1
+                else:
+                    # Here is the addition of the absolutely first key
+                    reduced[red_index] = col_data[col_data_cursor]
+                    new_index[new_index_cursor] = 1
+                    prev_key_data = key_data[key_data_cursor]
+                    reduction_started = True
+
+            if idxk == 1:
+                prev_key_data = key_data[key_data_cursor]
+
+        return reduced[:red_index+1][:], new_index
+
+    return f
+
+
+@generated_jit(nopython=True, nogil=True, cache=True)
+def reduce_prod(key_data, key_index, col_data, col_index, size):
+    result_dtype = col_data.dtype
+
+    def f(key_data, key_index, col_data, col_index, size):
+        prev_key_data = key_data[0]
+
+        reduction_started = False
+        new_index = np.zeros(size, dtype=np.uint8)
+        reduced = np.empty(size, dtype=result_dtype)
+        key_data_cursor = -1
+        col_data_cursor = -1
+        new_index_cursor = -1
+        red_index = 0
+
+        for idxk, idxd in zip(key_index, col_index):
+            if idxk == 1:
+                key_data_cursor += 1
+                if prev_key_data != key_data[key_data_cursor] or key_data_cursor == 0:
+                    new_index_cursor += 1
+
+            if idxd == 1:
+                col_data_cursor += 1
+
+            if idxk == idxd == 1:
+                if reduction_started:
+                    if prev_key_data == key_data[key_data_cursor]:
+                        # Here is the reduction of repeated keys
+                        reduced[red_index] *= col_data[col_data_cursor]
+                    else:
+                        red_index += 1
+                        # Here is the addition of the first key
+                        reduced[red_index] = col_data[col_data_cursor]
+                        new_index[new_index_cursor] = 1
+                else:
+                    # Here is the addition of the absolutely first key
+                    reduced[red_index] = col_data[col_data_cursor]
+                    new_index[new_index_cursor] = 1
+                    prev_key_data = key_data[key_data_cursor]
+                    reduction_started = True
+
+            if idxk == 1:
+                prev_key_data = key_data[key_data_cursor]
+
+        return reduced[:red_index+1][:], new_index
+
+    return f
+
+
+reduce_funcs = {'sum': reduce_sum,
+                'prod': reduce_prod}

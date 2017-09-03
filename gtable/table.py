@@ -6,6 +6,8 @@ from gtable.lib import records, stack_table_inplace, add_column, \
     merge_table, sort_table, filter_table, dropnan_table, first_record, \
     last_record, fillna_column, from_chunks
 
+REDUCTOR_IMPORTED = False
+
 
 def _check_length(i, k, this_length, length_last):
     if i == 0:
@@ -174,6 +176,21 @@ class Table:
         else:
             self[key], self.index[self.keys.index(key), :] = fillna_column(
                 self[key], self._index_column(key), reverse, fillvalue)
+
+    def reduce_by_key(self, column, check_sorted=False):
+        """
+        Reduce by key
+
+        :param column:
+        :param check_sorted:
+        :return:
+        """
+        # Import here to avoid circular reductions
+        global REDUCTOR_IMPORTED
+        if not REDUCTOR_IMPORTED:
+            from gtable.reductions import ReductorByKey
+            REDUCTOR_IMPORTED = True
+        return ReductorByKey(self, column, check_sorted)
 
     @classmethod
     def from_pandas(cls, dataframe):

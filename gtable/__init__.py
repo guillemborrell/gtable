@@ -3,6 +3,7 @@ from .column import Column
 from .version import __version__
 from .joins import inner_join, full_outer_join
 from .lib import merge_table as _merge_table
+from .reductions import reduce_by_key
 
 
 def merge(table_left, table_right, key):
