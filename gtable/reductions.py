@@ -1,6 +1,6 @@
 import numpy as np
 from functools import partial
-from .fast import reduce_funcs
+from .fast import reduce_sum, reduce_prod
 from .table import Table
 
 
@@ -51,6 +51,10 @@ def reduce_by_key(table, column_name, func, check_sorted=True):
     t.keys = new_keys
 
     return t
+
+
+reduce_funcs = {'sum': reduce_sum,
+                'prod': reduce_prod}
 
 
 class ReductorByKey:

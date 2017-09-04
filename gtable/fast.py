@@ -1,5 +1,5 @@
-from numba import jit, generated_jit, types
 import numpy as np
+from numba import jit, generated_jit, types
 
 
 @generated_jit(nopython=True, nogil=True, cache=True)
@@ -15,18 +15,18 @@ def apply_fast_add(value_left, value_right, index_left, index_right):
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
-        for i in range(len(index_left)):
-            if index_left[i] & index_right[i]:
+        for il, ir in zip(index_left, index_right):
+            if il & ir:
                 result[cursor_result] = value_left[cursor_left] +\
                                         value_right[cursor_right]
                 cursor_result += 1
                 cursor_left += 1
                 cursor_right += 1
 
-            elif index_left[i]:
+            elif il:
                 cursor_left += 1
 
-            elif index_right[i]:
+            elif ir:
                 cursor_right += 1
 
         return result, index
@@ -48,18 +48,18 @@ def apply_fast_sub(value_left, value_right, index_left, index_right):
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
-        for i in range(len(index_left)):
-            if index_left[i] & index_right[i]:
+        for il, ir in zip(index_left, index_right):
+            if il & ir:
                 result[cursor_result] = value_left[cursor_left] -\
                                         value_right[cursor_right]
                 cursor_result += 1
                 cursor_left += 1
                 cursor_right += 1
 
-            elif index_left[i]:
+            elif il:
                 cursor_left += 1
 
-            elif index_right[i]:
+            elif ir:
                 cursor_right += 1
 
         return result, index
@@ -81,18 +81,18 @@ def apply_fast_mul(value_left, value_right, index_left, index_right):
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
-        for i in range(len(index_left)):
-            if index_left[i] & index_right[i]:
+        for il, ir in zip(index_left, index_right):
+            if il & ir:
                 result[cursor_result] = value_left[cursor_left] *\
                                         value_right[cursor_right]
                 cursor_result += 1
                 cursor_left += 1
                 cursor_right += 1
 
-            elif index_left[i]:
+            elif il:
                 cursor_left += 1
 
-            elif index_right[i]:
+            elif ir:
                 cursor_right += 1
 
         return result, index
@@ -114,18 +114,18 @@ def apply_fast_truediv(value_left, value_right, index_left, index_right):
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
-        for i in range(len(index_left)):
-            if index_left[i] & index_right[i]:
+        for il, ir in zip(index_left, index_right):
+            if il & ir:
                 result[cursor_result] = value_left[cursor_left] /\
                                         value_right[cursor_right]
                 cursor_result += 1
                 cursor_left += 1
                 cursor_right += 1
 
-            elif index_left[i]:
+            elif il:
                 cursor_left += 1
 
-            elif index_right[i]:
+            elif ir:
                 cursor_right += 1
 
         return result, index
@@ -141,18 +141,18 @@ def apply_fast_floordiv(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             result[cursor_result] = value_left[cursor_left] //\
                                     value_right[cursor_right]
             cursor_result += 1
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -172,18 +172,18 @@ def apply_fast_pow(value_left, value_right, index_left, index_right):
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
-        for i in range(len(index_left)):
-            if index_left[i] & index_right[i]:
+        for il, ir in zip(index_left, index_right):
+            if il & ir:
                 result[cursor_result] = value_left[cursor_left] **\
                                         value_right[cursor_right]
                 cursor_result += 1
                 cursor_left += 1
                 cursor_right += 1
 
-            elif index_left[i]:
+            elif il:
                 cursor_left += 1
 
-            elif index_right[i]:
+            elif ir:
                 cursor_right += 1
 
         return result, index
@@ -205,18 +205,18 @@ def apply_fast_mod(value_left, value_right, index_left, index_right):
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
-        for i in range(len(index_left)):
-            if index_left[i] & index_right[i]:
+        for il, ir in zip(index_left, index_right):
+            if il & ir:
                 result[cursor_result] = value_left[cursor_left] %\
                                         value_right[cursor_right]
                 cursor_result += 1
                 cursor_left += 1
                 cursor_right += 1
 
-            elif index_left[i]:
+            elif il:
                 cursor_left += 1
 
-            elif index_right[i]:
+            elif ir:
                 cursor_right += 1
 
         return result, index
@@ -232,18 +232,18 @@ def apply_fast_gt(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             result[cursor_result] = value_left[cursor_left] >\
                                     value_right[cursor_right]
             cursor_result += 1
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -257,18 +257,18 @@ def apply_fast_ge(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             result[cursor_result] = value_left[cursor_left] >=\
                                     value_right[cursor_right]
             cursor_result += 1
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -282,18 +282,18 @@ def apply_fast_lt(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             result[cursor_result] = value_left[cursor_left] <\
                                     value_right[cursor_right]
             cursor_result += 1
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -307,18 +307,18 @@ def apply_fast_le(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             result[cursor_result] = value_left[cursor_left] <=\
                                     value_right[cursor_right]
             cursor_result += 1
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -333,8 +333,8 @@ def apply_fast_and(value_left, value_right, index_left, index_right):
     cursor_right = 0
     cursor_result = 0
 
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             if value_left[cursor_left] and value_right[cursor_right]:
                 result[cursor_result] = 1
             else:
@@ -343,10 +343,10 @@ def apply_fast_and(value_left, value_right, index_left, index_right):
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -361,8 +361,8 @@ def apply_fast_or(value_left, value_right, index_left, index_right):
     cursor_right = 0
     cursor_result = 0
 
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             if value_left[cursor_left] or value_right[cursor_right]:
                 result[cursor_result] = 1
             else:
@@ -371,10 +371,10 @@ def apply_fast_or(value_left, value_right, index_left, index_right):
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -389,8 +389,8 @@ def apply_fast_xor(value_left, value_right, index_left, index_right):
     cursor_right = 0
     cursor_result = 0
 
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             if value_left[cursor_left]:
                 if value_right[cursor_right]:
                     result[cursor_result] = 0
@@ -405,10 +405,10 @@ def apply_fast_xor(value_left, value_right, index_left, index_right):
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -422,8 +422,8 @@ def apply_fast_eq(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             if value_left[cursor_left] == value_right[cursor_right]:
                 result[cursor_result] = 1
             else:
@@ -432,10 +432,10 @@ def apply_fast_eq(value_left, value_right, index_left, index_right):
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -449,8 +449,8 @@ def apply_fast_ne(value_left, value_right, index_left, index_right):
     cursor_result = 0
     cursor_left = 0
     cursor_right = 0
-    for i in range(len(index_left)):
-        if index_left[i] & index_right[i]:
+    for il, ir in zip(index_left, index_right):
+        if il & ir:
             if value_left[cursor_left] != value_right[cursor_right]:
                 result[cursor_result] = 1
             else:
@@ -459,10 +459,10 @@ def apply_fast_ne(value_left, value_right, index_left, index_right):
             cursor_left += 1
             cursor_right += 1
 
-        elif index_left[i]:
+        elif il:
             cursor_left += 1
 
-        elif index_right[i]:
+        elif ir:
             cursor_right += 1
 
     return result, index
@@ -477,8 +477,8 @@ def apply_mask_column(data, index, mask):
     new_index = np.empty_like(index)
 
     data_cursor = 0
-    for i in range(len(index)):
-        if index[i]:
+    for i, idx in enumerate(index):
+        if idx:
             if mask[data_cursor]:
                 new_index[i] = 1
             else:
@@ -924,7 +924,3 @@ def reduce_prod(key_data, key_index, col_data, col_index, size):
         return reduced[:red_index+1][:], new_index
 
     return f
-
-
-reduce_funcs = {'sum': reduce_sum,
-                'prod': reduce_prod}
