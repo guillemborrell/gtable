@@ -67,15 +67,23 @@ if __name__ == '__main__':
     import inspect
     import sys
     import os
+    from statistics import mean, stdev
     t = TimeSuite()
     t.setup()
     print('Getting runtimes')
 
     for method in inspect.getmembers(t, predicate=inspect.ismethod):
         if method[0].startswith('time_'):
+            stats = timeit.repeat(
+                "t.{}()".format(method[0]),
+                globals=globals(),
+                number=100,
+                repeat=10)
+
+            mean_t = mean(stats[1:]) * 10
+            stdev_t = stdev(stats[1:]) * 10
             sys.stdout.write(method[0] + ': ')
-            sys.stdout.write(str(timeit.timeit("t.{}()".format(method[0]),
-                                               globals=globals(),
-                                               number=1000)) + ' [ms]')
+            sys.stdout.write(str(mean_t) + ' ± (std) ' +
+                             str(stdev_t) + ' [ms]')
             sys.stdout.write(os.linesep)
 
