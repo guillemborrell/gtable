@@ -56,9 +56,3 @@ def reduce_by_key(table, column_name, func, check_sorted=True):
 reduce_funcs = {'sum': reduce_sum,
                 'prod': reduce_prod}
 
-
-class ReductorByKey:
-    def __init__(self, table, column, check_sorted=False):
-        for reduction_f in reduce_funcs:
-            self.__dict__[reduction_f] = partial(
-                reduce_by_key, table, column, reduction_f, check_sorted)

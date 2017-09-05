@@ -6,8 +6,6 @@ from gtable.lib import records, stack_table_inplace, add_column, \
     merge_table, sort_table, filter_table, dropnan_table, first_record, \
     last_record, fillna_column, from_chunks
 
-REDUCTOR_IMPORTED = False
-
 
 def _check_length(i, k, this_length, length_last):
     if i == 0:
@@ -19,6 +17,19 @@ def _check_length(i, k, this_length, length_last):
             length_last = this_length
 
     return length_last
+
+
+def get_reductor():
+    from functools import partial
+    from gtable.reductions import reduce_funcs, reduce_by_key
+
+    class ReductorByKey:
+        def __init__(self, table, column, check_sorted=False):
+            for reduction_f in reduce_funcs:
+                self.__dict__[reduction_f] = partial(
+                    reduce_by_key, table, column, reduction_f, check_sorted)
+
+    return ReductorByKey
 
 
 class Table:
@@ -185,12 +196,7 @@ class Table:
         :param check_sorted:
         :return:
         """
-        # Import here to avoid circular reductions
-        global REDUCTOR_IMPORTED
-        if not REDUCTOR_IMPORTED:
-            from gtable.reductions import ReductorByKey
-            REDUCTOR_IMPORTED = True
-        return ReductorByKey(self, column, check_sorted)
+        return get_reductor()(self, column, check_sorted)
 
     @classmethod
     def from_pandas(cls, dataframe):
