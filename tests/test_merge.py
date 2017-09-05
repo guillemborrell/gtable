@@ -1,5 +1,6 @@
 from gtable import Table, merge
 import numpy as np
+import pandas as pd
 
 
 def test_merge_1():
@@ -98,4 +99,14 @@ def test_merge_empty_1():
     assert np.all(c.c.index == np.array([1, 1, 1]))
 
 
+def test_required_columns():
+    table_a = Table(
+        {
+            'a': pd.date_range('2000-01-01', periods=10, freq='D'),
+            'b': np.arange(10)
+        }
+    )
 
+    table_a.required_columns(*['a', 'b', 'c'])
+
+    assert table_a.keys == ['a', 'b', 'c']

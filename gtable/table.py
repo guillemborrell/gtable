@@ -5,7 +5,7 @@ from functools import partial
 from gtable.column import Column
 from gtable.lib import records, stack_table_inplace, add_column, \
     merge_table, sort_table, filter_table, dropnan_table, first_record, \
-    last_record, fillna_column, from_chunks
+    last_record, fillna_column, from_chunks, required_columns
 
 
 def _check_length(i, k, this_length, length_last):
@@ -197,6 +197,9 @@ class Table:
         :return:
         """
         return get_reductor()(self, column, check_sorted)
+
+    def required_columns(self, *args):
+        required_columns(self, *args)
 
     @classmethod
     def from_pandas(cls, dataframe):

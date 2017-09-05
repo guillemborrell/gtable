@@ -457,3 +457,15 @@ def dropnan_table(table):
         index[enumerator] = 0
 
 
+def required_columns(table, *args):
+    """Adds the required columns inplace"""
+    new_cols = set(args) - set(table.keys)
+    length = table.index.shape[1]
+
+    for col in new_cols:
+        table.keys.append(col)
+        table.data.append(np.array([]))
+        table.index = np.vstack(
+            (table.index, np.zeros((len(new_cols), length), dtype=np.uint8))
+        )
+
