@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from functools import partial
 
 from gtable.column import Column
 from gtable.lib import records, stack_table_inplace, add_column, \
@@ -20,7 +21,6 @@ def _check_length(i, k, this_length, length_last):
 
 
 def get_reductor():
-    from functools import partial
     from gtable.reductions import reduce_funcs, reduce_by_key
 
     class ReductorByKey:

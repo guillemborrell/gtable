@@ -1,5 +1,4 @@
 import numpy as np
-from functools import partial
 from .fast import reduce_sum, reduce_prod
 from .table import Table
 
