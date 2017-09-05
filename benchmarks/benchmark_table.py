@@ -2,6 +2,7 @@ from gtable import Table
 import numpy as np
 import pandas as pd
 
+
 class TimeSuite:
     """
     An example benchmark that times the performance of various kinds
@@ -62,10 +63,19 @@ class TimeSuite:
 
         
 if __name__ == '__main__':
+    import timeit
+    import inspect
+    import sys
+    import os
     t = TimeSuite()
     t.setup()
-    t.time_setattr()
-    t.time_setattr_small()
-    t.time_mul_setattr_vsmall()
-    t.time_mul_setattr()
-    
+    print('Getting runtimes')
+
+    for method in inspect.getmembers(t, predicate=inspect.ismethod):
+        if method[0].startswith('time_'):
+            sys.stdout.write(method[0] + ': ')
+            sys.stdout.write(str(timeit.timeit("t.{}()".format(method[0]),
+                                               globals=globals(),
+                                               number=1000)) + ' [ms]')
+            sys.stdout.write(os.linesep)
+
