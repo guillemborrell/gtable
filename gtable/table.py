@@ -199,6 +199,12 @@ class Table:
         return get_reductor()(self, column, check_sorted)
 
     def required_columns(self, *args):
+        """
+        Enforce the required columns. Create empty columns if necessary.
+
+        :param args:
+        :return:
+        """
         required_columns(self, *args)
 
     @classmethod
@@ -246,7 +252,10 @@ class Table:
         return self.data[self.keys.index(key)]
 
     def __setitem__(self, key, value):
-        self.data[self.keys.index(key)] = value
+        if isinstance(value, np.ndarray):
+            self.data[self.keys.index(key)] = value
+        else:
+            raise ValueError('Direct assignment only valid with Numpy arrays')
 
     def __delitem__(self, key):
         del self.data[self.keys.index(key)]

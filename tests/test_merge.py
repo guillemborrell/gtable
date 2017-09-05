@@ -110,3 +110,4 @@ def test_required_columns():
     table_a.required_columns(*['a', 'b', 'c'])
 
     assert table_a.keys == ['a', 'b', 'c']
+

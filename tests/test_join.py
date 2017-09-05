@@ -1,6 +1,7 @@
 from gtable import Table
 from gtable.joins import inner_join, full_outer_join
 import numpy as np
+import pandas as pd
 
 
 def test_inner_join_1():
@@ -107,3 +108,16 @@ def test_outer_join_3():
     t3 = full_outer_join(t1, t2, 'idx', check_sorted=False)
 
     assert np.all(t3.G.values == np.hstack([t1.G.values, t2.G.values]))
+
+
+def test_outer_join_datetime():
+    t1 = Table({'a': pd.date_range('2000-01-01', periods=20),
+                'b': np.arange(20)})
+
+    t2 = Table({'a': pd.date_range('2000-01-01', periods=10),
+                'b': np.arange(10)})
+    t2.add_column('c', [])
+
+    t3 = full_outer_join(t1, t2, 'a')
+
+    assert np.all(t3.b.values == np.arange(20))
