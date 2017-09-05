@@ -216,7 +216,10 @@ class Table:
         :return:
         """
         idx = self.keys.index(old_name)
-        self.keys[idx] = new_name
+        if new_name not in self.keys:
+            self.keys[idx] = new_name
+        else:
+            raise ValueError('Column names must be unique')
 
     @classmethod
     def from_pandas(cls, dataframe):
