@@ -207,6 +207,17 @@ class Table:
         """
         required_columns(self, *args)
 
+    def rename_column(self, old_name, new_name):
+        """
+        Rename a column of the table
+
+        :param old_name:
+        :param new_name:
+        :return:
+        """
+        idx = self.keys.index(old_name)
+        self.keys[idx] = new_name
+
     @classmethod
     def from_pandas(cls, dataframe):
         """Create a table from a pandas dataframe"""

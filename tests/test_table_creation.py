@@ -104,3 +104,10 @@ def test_from_pandas():
     assert np.all(t.b.values == df.b.values)
     assert np.all(t.c.values == df.c.values)
     assert np.all(t.idx.values == df.index.values)
+
+
+def test_simple_table():
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t.rename_column('a', 'c')
+
+    assert t.keys == ['c', 'b']
