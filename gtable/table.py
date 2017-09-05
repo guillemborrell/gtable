@@ -52,7 +52,7 @@ class Table:
             if type(v) == list:
                 # TODO: Remove ASAP
                 # You may get a list of Timestamps. Specific to NFQ
-                if type(v[0]) == pd.Timestamp:
+                if len(v) > 0 and type(v[0]) == pd.Timestamp:
                     self.data.append(pd.DatetimeIndex(v).values)
                 else:
                     self.data.append(np.array(v))
