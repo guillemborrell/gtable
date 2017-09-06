@@ -30,8 +30,8 @@ def test_hcat_table():
 
 
 def test_vcat_table():
-    t = Table({'a': [1, 2, 3], 'b': np.array([4,5,6])})
-    t1 = Table({'a': [1, 2, 3], 'd': np.array([4,5,6])})
+    t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
+    t1 = Table({'a': [1, 2, 3], 'd': np.array([4, 5, 6])})
     t.stack(t1)
 
     assert np.all(t.index == np.array([[1, 1, 1, 1, 1, 1],

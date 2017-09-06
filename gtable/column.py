@@ -172,6 +172,14 @@ class Column:
 
         return Column(before & after, self.index)
 
+    def is_empty(self):
+        """
+        True if the column is empty
+
+        :return:
+        """
+        return self.values.shape == (0,)
+
 
 def apply_add(left: Column, right):
     if type(right) == Column:
