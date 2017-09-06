@@ -297,3 +297,5 @@ class Table:
                 else:
                     self.add_column(key, value)
 
+    def __len__(self):
+        return self.index.shape[1]

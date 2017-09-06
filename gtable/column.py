@@ -180,6 +180,22 @@ class Column:
         """
         return self.values.shape == (0,)
 
+    def contains(self, item):
+        """
+        Returns a column with the value of the column present in item.
+
+        :param item:
+        :return:
+        """
+        if isinstance(item, np.ndarray):
+            masked = self.mask(np.isin(self.values, item))
+            return masked == masked
+        elif type(item) == Column:
+            masked = self.mask(np.isin(self.values, item.values))
+            return masked == masked
+        else:
+            raise ValueError('Argument must be an array or a column.')
+
 
 def apply_add(left: Column, right):
     if type(right) == Column:

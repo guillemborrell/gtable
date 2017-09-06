@@ -29,3 +29,20 @@ def test_filter_3():
 
     assert t1.c.values[0] == 1
     assert np.all(t1.d.values == np.array([]))
+
+
+def test_filter_contains():
+    t = Table()
+    t.add_column('a', np.arange(10))
+    t.add_column('b', np.arange(5))
+
+    filt = t.a.contains(t.b)
+    assert np.all(t.filter(filt).a.values == t.b.values)
+
+    filt = t.a.contains(t.b.values)
+    assert np.all(t.filter(filt).a.values == t.b.values)
+
+    assert len(t.filter(filt)) == 5
+
+    filt = t.a.contains(np.array([11]))
+    assert t.filter(filt).a.is_empty()
