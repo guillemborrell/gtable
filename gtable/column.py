@@ -139,15 +139,15 @@ class Column:
         """
         return Column(*reindex_column(self.values, self.index, index))
 
-    def date_range(self, fr='1970-01-01', to='2262-01-01', pick_fr=True,
-                   pick_to=True):
+    def date_range(self, fr='1970-01-01', to='2262-01-01', include_fr=True,
+                   include_to=True):
         """
         Filter a column by date range.
 
         :param fr:
         :param to:
-        :param pick_fr:
-        :param pick_to:
+        :param include_fr:
+        :param include_to:
         :return:
         """
         if isinstance(self.values.dtype, np.datetime64):
@@ -160,12 +160,12 @@ class Column:
         if type(to) == str:
             to = np.datetime64(to)
 
-        if pick_fr:
+        if include_fr:
             before = self.values >= fr
         else:
             before = self.values > fr
 
-        if pick_to:
+        if include_to:
             after = self.values <= to
         else:
             after = self.values < to

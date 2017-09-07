@@ -39,8 +39,8 @@ def test_date_range():
     assert np.count_nonzero(
         t.a.date_range(to='1970-01-05').values) == 5
     assert np.count_nonzero(
-        t.a.date_range(to='1970-01-05', pick_to=False).values) == 4
+        t.a.date_range(to='1970-01-05', include_to=False).values) == 4
     assert np.count_nonzero(
         t.a.date_range(fr='1970-01-05').values) == 3
     assert np.count_nonzero(
-        t.a.date_range(fr='1970-01-05', pick_fr=False).values) == 2
+        t.a.date_range(fr='1970-01-05', include_fr=False).values) == 2
