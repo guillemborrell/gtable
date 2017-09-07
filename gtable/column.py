@@ -188,11 +188,9 @@ class Column:
         :return:
         """
         if isinstance(item, np.ndarray):
-            masked = self.mask(np.isin(self.values, item))
-            return masked == masked
+            return Column(np.isin(self.values, item), self.index)
         elif type(item) == Column:
-            masked = self.mask(np.isin(self.values, item.values))
-            return masked == masked
+            return Column(np.isin(self.values, item.values), self.index)
         else:
             raise ValueError('Argument must be an array or a column.')
 

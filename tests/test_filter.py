@@ -31,7 +31,7 @@ def test_filter_3():
     assert np.all(t1.d.values == np.array([]))
 
 
-def test_filter_contains():
+def test_filter_contains_1():
     t = Table()
     t.add_column('a', np.arange(10))
     t.add_column('b', np.arange(5))
