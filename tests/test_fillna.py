@@ -16,6 +16,7 @@ def test_fillna():
     b.fillna()
     
     assert np.all(b.values == np.array([1, 1, 1, 1, 1, 2, 2, 2]))
+    assert np.all(b.index == np.array([0, 0, 1, 1, 1, 1, 1, 1, 1, 1]))
 
 
 def test_fillna_fillvalue():
@@ -32,8 +33,9 @@ def test_fillna_fillvalue():
     b.fillna(fillvalue=-1)
     
     assert np.all(b.values == np.array([-1, -1, 1, 1, 1, 1, 1, 2, 2, 2]))
+    assert np.all(b.index == np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
 
-    
+
 def test_fillna_reverse():
     t = Table()
     t.keys = ['a', 'b']
@@ -48,6 +50,7 @@ def test_fillna_reverse():
     b.fillna(reverse=True)
     
     assert np.all(b.values == np.array([1, 1, 1, 2, 2, 2, 2, 2]))
+    assert np.all(b.index == np.array([1, 1, 1, 1, 1, 1, 1, 1, 0, 0]))
 
     
 def test_fillna_reverse_fillvalue():
@@ -64,6 +67,7 @@ def test_fillna_reverse_fillvalue():
     b.fillna(reverse=True, fillvalue=-1)
     
     assert np.all(b.values == np.array([1, 1, 1, 2, 2, 2, 2, 2, -1, -1]))
+    assert np.all(b.index == np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
 
 
 def test_fillna_table():
@@ -81,20 +85,3 @@ def test_fillna_table():
     assert np.all(t.b.values == np.array([1, 1, 1, 1, 1, 2, 2, 2]))
     assert np.all(t.b.index == np.array([0, 0, 1, 1, 1, 1, 1, 1, 1, 1]))
 
-
-def test_fillna_table():
-    t = Table()
-    t.keys = ['a', 'b']
-    t.data = [
-        np.arange(9),
-        np.array([1, 2])]
-    t.index = np.array(
-        [[0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-         [0, 0, 1, 0, 0, 0, 0, 1, 0, 0]], dtype=np.uint8)
-
-    t.fillna_column(['a', 'b'])
-
-    assert np.all(t.a.values == np.array([0, 1, 2, 3, 4, 5, 6, 7, 8]))
-    assert np.all(t.a.index == np.array([0, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
-    assert np.all(t.b.values == np.array([1, 1, 1, 1, 1, 2, 2, 2]))
-    assert np.all(t.b.index == np.array([0, 0, 1, 1, 1, 1, 1, 1, 1, 1]))

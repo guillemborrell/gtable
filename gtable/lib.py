@@ -36,7 +36,11 @@ def fillna_column(values, index, reverse=False, fillvalue=None):
 
         new_values = new_values[::-1]
 
-    new_index[np.where(indices < 0)] = 0
+    if fillvalue is None:
+        new_index[np.where(indices < 0)] = 0
+
+    if reverse:
+        new_index = new_index[::-1]
 
     return new_values, new_index
 
