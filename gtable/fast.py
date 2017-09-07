@@ -924,3 +924,37 @@ def reduce_prod(key_data, key_index, col_data, col_index, size):
         return reduced[:red_index+1][:], new_index
 
     return f
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def gen_column_filter(p_values, p_index, c_index):
+    data_filter = np.empty(c_index.sum(), dtype=np.bool_)
+    new_index = np.zeros(p_values.sum(), dtype=np.uint8)
+
+    p_values_cursor = 0
+    d_values_cursor = 0
+    d_index_cursor = 0
+
+    for p_i, c_i in zip(p_index, c_index):
+        if p_i and c_i:
+            if p_values[p_values_cursor]:
+                new_index[d_index_cursor] = 1
+                data_filter[d_values_cursor] = True
+                d_index_cursor += 1
+            else:
+                data_filter[d_values_cursor] = False
+
+            p_values_cursor += 1
+            d_values_cursor += 1
+
+        elif p_i:
+            if p_values[p_values_cursor]:
+                new_index[d_index_cursor] = 0
+                d_index_cursor += 1
+            p_values_cursor += 1
+
+        elif c_i:
+            data_filter[d_values_cursor] = False
+            d_values_cursor += 1
+
+    return data_filter, new_index

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from .fast import gen_column_filter
 
 
 def fillna_column(values, index, reverse=False, fillvalue=None):
@@ -427,22 +428,17 @@ def add_column(table, k, v, index=None, align='top'):
 def filter_table(table, predicate):
     new_keys = table.keys
     new_data = list()
-
-    crop_index = predicate.index.astype(np.bool)
-    crop_value = predicate.values.astype(np.bool)
-
-    # First step is to compute the new index by filtering twice:
-    new_index = table.index[:, crop_index]
-    new_index = new_index[:, crop_value]
+    new_index = list()
 
     # Now for the values
     for column, index in zip(table.data, table.index):
-        enumerator = index.astype(np.int).cumsum() - np.array(1)
-        filtered_column = column[enumerator[crop_index][crop_value]]
-        cleaner = (enumerator >= 0)[crop_index][crop_value]
-        new_data.append(filtered_column[cleaner])
+        data_filter, new_col_index = gen_column_filter(
+            predicate.values, predicate.index, index
+        )
+        new_index.append(new_col_index)
+        new_data.append(column[data_filter])
 
-    return new_data, new_keys, new_index
+    return new_data, new_keys, np.vstack(new_index)
 
 
 def dropnan_table(table):

@@ -46,3 +46,30 @@ def test_filter_contains():
 
     filt = t.a.contains(np.array([11]))
     assert t.filter(filt).a.is_empty()
+
+
+def test_filter_date():
+    t = Table()
+    t.a = np.random.rand(10)
+    t.b = pd.date_range('2000-01-01', freq='D', periods=10)
+    t.c = np.array([1, 2])
+    t.add_column('d', np.array([1, 2]), align='bottom')
+
+    thres1 = np.array(['2000-01-03'], dtype=np.datetime64)
+    thres2 = np.array(['2000-01-05'], dtype=np.datetime64)
+    t1 = t.filter(t.b >= thres1)
+    assert np.all(t1.c.values == np.array([]))
+    assert np.all(t1.d.values == np.array([1, 2]))
+    assert np.all(t1.a.values == t.a.values[2:])
+
+    t1 = t.filter((t.b >= thres1) & (t.b <= thres2))
+    assert np.all(t1.c.values == np.array([]))
+    assert np.all(t1.d.values == np.array([]))
+    assert np.all(t1.a.values == t.a.values[2:5])
+
+    t1 = t.filter(t.b.date_range(fr=thres1, to=thres2))
+    assert np.all(t1.c.values == np.array([]))
+    assert np.all(t1.d.values == np.array([]))
+    assert np.all(t1.a.values == t.a.values[2:5])
+
+
