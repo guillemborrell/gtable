@@ -871,7 +871,8 @@ def reduce_sum(key_data, key_index, col_data, col_index, size):
         for idxk, idxd in zip(key_index, col_index):
             if idxk == 1:
                 key_data_cursor += 1
-                if prev_key_data != key_data[key_data_cursor] or key_data_cursor == 0:
+                if prev_key_data != key_data[key_data_cursor] or \
+                                key_data_cursor == 0:
                     new_index_cursor += 1
 
             if idxd == 1:
@@ -920,7 +921,8 @@ def reduce_prod(key_data, key_index, col_data, col_index, size):
         for idxk, idxd in zip(key_index, col_index):
             if idxk == 1:
                 key_data_cursor += 1
-                if prev_key_data != key_data[key_data_cursor] or key_data_cursor == 0:
+                if prev_key_data != key_data[key_data_cursor] or \
+                                key_data_cursor == 0:
                     new_index_cursor += 1
 
             if idxd == 1:
