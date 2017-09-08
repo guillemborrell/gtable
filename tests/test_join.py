@@ -121,3 +121,16 @@ def test_outer_join_datetime():
     t3 = full_outer_join(t1, t2, 'a')
 
     assert np.all(t3.b.values == np.arange(20))
+
+
+def test_outer_join_4():
+    t1 = Table({'a': [1, 2, 5, 8, 9, 13, 19],
+                'b': [1, 1, 1, 1, 1, 1, 1]})
+
+    t2 = Table({'a': [3, 6, 12],
+                'b': [2, 2, 2]})
+
+    t3 = full_outer_join(t1, t2, 'a')
+
+    assert np.all(t3.a.values == np.array([1, 2, 3, 5, 6, 8, 9, 12, 13, 19]))
+    assert np.all(t3.b.values == np.array([1, 1, 2, 1, 2, 1, 1, 2, 1, 1]))

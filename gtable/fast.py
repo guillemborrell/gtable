@@ -1,3 +1,9 @@
+"""
+File with all the numba-accelerated functions. Some of this functions are
+hard, and tremendously non-pythonic due to JIT optimization. They are not
+that hard, but you must take it with patience.
+"""
+
 import numpy as np
 from numba import jit, generated_jit, types
 
@@ -520,6 +526,15 @@ def isin_sorted(base, test):
 def join_low_level(data_left, index_left,
                    data_right, index_right,
                    common_rec):
+    """This is probably the hardest function of all. It returns the joined array
+    plus the indices for the left and right data that produce the join. The most
+    important detail is that, for the left and right index, a negative value
+    means that the value must not be present in the joined column. There are
+    two passes over the data, the first one is get the size of the arrays
+    that have to be allocated, and the second is the actual computation of
+    the join. This is only used for full outer joins, but it should work for
+    left and right joins too. Due to numba limitations, you cannot use
+    a column of strings to join two tables."""
     data_filter_left = isin_sorted(data_left, common_rec)
     data_filter_right = isin_sorted(data_right, common_rec)
 
@@ -540,7 +555,7 @@ def join_low_level(data_left, index_left,
     for i in range(left_len + right_len):  # Upper limit to prevent Inf loop
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
             if stop_left:
-                if data_filter_right[cur_left]:
+                if data_filter_right[cur_right]:
                     length += 1
                 if cur_right == right_len - 1:
                     stop_right = True
@@ -556,7 +571,6 @@ def join_low_level(data_left, index_left,
 
         elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
             # Both filters always true
-            length += 1
             if cur_left == left_len - 1:
                 stop_left = True
             else:
@@ -565,6 +579,8 @@ def join_low_level(data_left, index_left,
                 stop_right = True
             else:
                 cur_right += 1
+
+            length += 1
 
         else:
             if stop_right:
@@ -575,7 +591,7 @@ def join_low_level(data_left, index_left,
                 else:
                     cur_left += 1
             else:
-                if data_filter_right[cur_left]:
+                if data_filter_right[cur_right]:
                     length += 1
                 if cur_right == right_len - 1:
                     stop_right = True
@@ -589,70 +605,76 @@ def join_low_level(data_left, index_left,
     order_left = np.empty(length, dtype=np.int64)
     order_right = np.empty(length, dtype=np.int64)
 
+    stop_left = False
+    stop_right = False
     cur_left = 0
     cur_right = 0
     added = 0
 
-    while added < length:
+    while added < length:  # Upper limit to prevent Inf loop
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
-            if cur_left == left_len - 1:
-                # Clause for non overlapping data at the end of the array
-                if cur_right == 0:
-                    data_joined[added] = filtered_data_left[cur_left]
-                    order_left[added] = cur_left
-                    order_right[added] = cur_right
-                    added += 1
-
-                data_joined[added] = filtered_data_right[cur_right]
-                order_left[added] = cur_left
-                order_right[added] = cur_right
-                added += 1
-
-                if cur_right < right_len - 1:
-                    cur_right += 1
-
-            else:
-                data_joined[added] = filtered_data_left[cur_left]
-                order_left[added] = cur_left
-                order_right[added] = cur_right
-                added += 1
-                if cur_left < left_len - 1:
-                    cur_left += 1
-
-        elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
-            data_joined[added] = filtered_data_left[cur_left]
-            order_left[added] = cur_left
-            order_right[added] = cur_right
-            added += 1
-            if cur_left < left_len - 1:
-                cur_left += 1
-            if cur_right < right_len - 1:
-                cur_right += 1
-
-        else:
-            if cur_right == right_len - 1:
-                # Clause for non overlapping data at the end of the array
-                if cur_left == 0:
+            if stop_left:
+                if data_filter_right[cur_right]:
                     data_joined[added] = filtered_data_right[cur_right]
                     order_left[added] = cur_left
                     order_right[added] = cur_right
                     added += 1
-
-                data_joined[added] = filtered_data_left[cur_left]
-                order_left[added] = cur_left
-                order_right[added] = cur_right
-                added += 1
-
-                if cur_left < left_len - 1:
+                if cur_right == right_len - 1:
+                    stop_right = True
+                else:
+                    cur_right += 1
+            else:
+                if data_filter_left[cur_left]:
+                    data_joined[added] = filtered_data_left[cur_left]
+                    order_left[added] = cur_left
+                    order_right[added] = cur_right
+                    added += 1
+                if cur_left == left_len - 1:
+                    stop_left = True
+                else:
                     cur_left += 1
 
+        elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
+            # Both filters always true
+            data_joined[added] = filtered_data_left[cur_left]
+            order_left[added] = cur_left
+            order_right[added] = cur_right
+
+            if cur_left == left_len - 1:
+                stop_left = True
             else:
-                data_joined[added] = filtered_data_right[cur_right]
-                order_left[added] = cur_left
-                order_right[added] = cur_right
-                added += 1
-                if cur_right < right_len - 1:
+                cur_left += 1
+            if cur_right == right_len - 1:
+                stop_right = True
+            else:
+                cur_right += 1
+
+            added += 1
+
+        else:
+            if stop_right:
+                if data_filter_left[cur_left]:
+                    data_joined[added] = filtered_data_left[cur_left]
+                    order_left[added] = cur_left
+                    order_right[added] = cur_right
+                    added += 1
+                if cur_left == left_len - 1:
+                    stop_left = True
+                else:
+                    cur_left += 1
+            else:
+                if data_filter_right[cur_right]:
+                    data_joined[added] = filtered_data_right[cur_right]
+                    order_left[added] = cur_left
+                    order_right[added] = cur_right
+                    added += 1
+                if cur_right == right_len - 1:
+                    stop_right = True
+                else:
                     cur_right += 1
+
+        if stop_left and stop_right:
+            break
 
     index_mapping_left = np.arange(len(index_left))[index_left == 1]
     index_mapping_right = np.arange(len(index_right))[index_right == 1]
@@ -672,6 +694,9 @@ def join_low_level(data_left, index_left,
 
 @jit(nopython=True, nogil=True, cache=True)
 def reindex(index, global_index):
+    """Reindex a column data using a global (table-wise) index. A global
+    index is the index for the full column, and this operation exists because
+    data columns can be shorter."""
     data_len = 0
 
     for idx in global_index:
@@ -711,8 +736,8 @@ def reindex_column(data, index, global_index):
 @jit(nopython=True, nogil=True, cache=True)
 def reindex_join(left_index, right_index,
                  left_global_index, right_global_index):
+    """Applies a global index"""
     # TODO: Clean unused variables.
-
     len_left = 0
     len_right = 0
     idx_left_cur = 0
