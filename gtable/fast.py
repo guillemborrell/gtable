@@ -523,6 +523,58 @@ def isin_sorted(base, test):
 
 
 @jit(nopython=True, nogil=True, cache=True)
+def intersection_sorted(base, test):
+    result = np.empty(base.shape, dtype=np.bool_)
+    cursor_result = 0
+    cursor_test = 0
+    for elem in base:
+        result[cursor_result] = False
+        for i in range(len(test)):
+            if elem < test[cursor_test]:
+                break
+            elif elem == test[cursor_test]:
+                result[cursor_result] = True
+                break
+            else:
+                # array exhausted
+                if cursor_test == len(test) - 1:
+                    break
+                # Advance test array
+                else:
+                    cursor_test += 1
+
+        cursor_result += 1
+
+    return result
+
+
+@jit(nopython=True, nogil=True, cache=True)
+def intersection_sorted(base, test):
+    result = np.empty(base.shape, dtype=np.bool_)
+    cursor_result = 0
+    cursor_test = 0
+    for elem in base:
+        result[cursor_result] = False
+        for i in range(len(test)):
+            if elem < test[cursor_test]:
+                break
+            elif elem == test[cursor_test]:
+                result[cursor_result] = True
+                break
+            else:
+                # array exhausted
+                if cursor_test == len(test) - 1:
+                    break
+                # Advance test array
+                else:
+                    cursor_test += 1
+
+        cursor_result += 1
+
+    return result
+
+
+@jit(nopython=True, nogil=True, cache=True)
 def join_low_level(data_left, index_left,
                    data_right, index_right,
                    common_rec):
