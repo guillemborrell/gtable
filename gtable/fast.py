@@ -768,7 +768,8 @@ def reindex_join(left_index, right_index,
 
             idx_right_cur += 1
 
-    data_index = np.empty(len_left + len_right, dtype=np.int64)
+    lid = np.empty(len_left + len_right, dtype=np.bool_)
+    rid = np.empty(len_left + len_right, dtype=np.bool_)
     left_global = np.empty(len_left, dtype=np.int64)
     right_global = np.empty(len_right, dtype=np.int64)
     index_global = np.zeros(len(left_global_index), dtype=np.uint8)
@@ -786,7 +787,8 @@ def reindex_join(left_index, right_index,
                 left_global[idx_left] = left_gidx
                 index_global[idx_index] = 1
                 idx_left += 1
-                data_index[idx_data] = left_gidx
+                lid[idx_data] = True
+                rid[idx_data] = False
                 idx_data += 1
                 if right_gidx >= 0:
                     idx_right_cur += 1
@@ -797,7 +799,8 @@ def reindex_join(left_index, right_index,
                         right_global[idx_right] = right_gidx
                         index_global[idx_index] = 1
                         idx_right += 1
-                        data_index[idx_data] = -right_gidx - 1
+                        lid[idx_data] = False
+                        rid[idx_data] = True
                         idx_data += 1
                     idx_right_cur += 1
 
@@ -808,7 +811,8 @@ def reindex_join(left_index, right_index,
                 right_global[idx_right] = right_gidx
                 index_global[idx_index] = 1
                 idx_right += 1
-                data_index[idx_data] = -right_gidx - 1
+                lid[idx_data] = False
+                rid[idx_data] = True
                 idx_data += 1
                 if left_gidx >= 0:
                     idx_left_cur += 1
@@ -819,30 +823,22 @@ def reindex_join(left_index, right_index,
                         left_global[idx_left] = left_gidx
                         index_global[idx_index] = 1
                         idx_left += 1
-                        data_index[idx_data] = left_gidx
+                        lid[idx_data] = True
+                        rid[idx_data] = False
                         idx_data += 1
                     idx_left_cur += 1
 
             idx_right_cur += 1
         idx_index += 1
 
-    # Separate positive parts (left) from negative (right)
-    # To be accelerated
-    lid = (data_index >= 0) & \
-          (left_global_index[index_global.astype(np.bool_)] >= 0)
-    rid = (data_index < 0) & \
-          (right_global_index[index_global.astype(np.bool_)] >= 0)
-
-    return (data_index, index_global, left_global, right_global,
-            lid, rid, idx_data)
+    return index_global, left_global, right_global, lid, rid, idx_data
 
 
 # Same wrapper for column join
 def reindex_join_columns(left_column, right_column,
                          left_global_index, right_global_index):
 
-    (data_index, new_index, left_global, right_global, lid, rid, size
-     ) = reindex_join(
+    new_index, left_global, right_global, lid, rid, size = reindex_join(
         left_column.index, right_column.index,
         left_global_index, right_global_index)
 
