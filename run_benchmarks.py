@@ -2,6 +2,7 @@ import os
 import inspect
 import timeit
 from statistics import mean, stdev
+from math import log10
 import sys
 import argparse
 from datetime import datetime
@@ -25,7 +26,7 @@ for f in os.walk('benchmarks'):
 now = datetime.now().isoformat()
 
 for this_module in modules:
-    print(this_module)
+    print('File:', this_module)
     exec('from benchmarks import {}'.format(this_module))
     for mem in inspect.getmembers(locals()[this_module],
                                   predicate=inspect.isclass):
@@ -35,28 +36,48 @@ for this_module in modules:
             t.setup()
             for method in inspect.getmembers(t, predicate=inspect.ismethod):
                 if method[0].startswith('time_'):
-                    stats = timeit.repeat(
-                        "t.{}()".format(method[0]),
-                        globals=globals(),
-                        number=100,
-                        repeat=10)
+                    try:
+                        # Run a single test to determine the number of
+                        # repetitions
+                        test = timeit.timeit(
+                            "t.{}()".format(method[0]),
+                            globals=globals(),
+                            number=1)
 
-                    mean_t = mean(stats[1:]) * 10
-                    stdev_t = stdev(stats[1:]) * 10
-                    sys.stdout.write(method[0] + ': ')
-                    sys.stdout.write(str(mean_t) + ' ± (std) ' +
-                                     str(stdev_t) + ' [ms]')
-                    sys.stdout.write(os.linesep)
+                        # Cap the number of repetitions
+                        fac = 10**round(log10(0.5/test))
+                        if fac > 10000:
+                            fac = 10000
+                        if fac < 1:
+                            fac = 1
 
-                    results.append({
-                        'when': now,
-                        'module': this_module,
-                        'class': mem[0],
-                        'benchmark': method[0],
-                        'mean': mean_t,
-                        'std': stdev_t,
-                        'unit': 'ms'
-                    })
+                        stats = timeit.repeat(
+                            "t.{}()".format(method[0]),
+                            globals=globals(),
+                            number=fac,
+                            repeat=11)
+
+                        mean_t = mean(stats[1:]) / fac * 1000
+                        stdev_t = stdev(stats[1:]) / fac * 1000
+                        sys.stdout.write('\033[94m' + method[0] + ': ' +
+                                         '\033[0m')
+                        sys.stdout.write(
+                            str(round(mean_t, 6)) + ' ± (std) ' +
+                            str(round(stdev_t/mean_t*100)) + '% [ms]')
+                        sys.stdout.write(os.linesep)
+
+                        results.append({
+                            'when': now,
+                            'module': this_module,
+                            'class': mem[0],
+                            'benchmark': method[0],
+                            'mean': mean_t,
+                            'std': stdev_t,
+                            'unit': 'ms'
+                        })
+                    # Do not break the benchmarks due to buggy code.
+                    except:
+                        print(method[0], 'F')
 
 if args.append:
     spec = 'a'
