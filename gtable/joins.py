@@ -1,7 +1,8 @@
 from gtable import Table
 import numpy as np
 from itertools import chain
-from gtable.fast import join_low_level, reindex_join_columns
+from gtable.fast import join_low_level, reindex_join_columns, \
+    intersection_sorted, union_sorted
 
 
 def inner_join(table_left, table_right, column):
@@ -31,7 +32,7 @@ def inner_join(table_left, table_right, column):
     if not np.all(common_right.values == np.sort(common_right.values)):
         raise ValueError('Trying to join with a non sorted column')
 
-    common_rec = np.intersect1d(common_left.values, common_right.values)
+    common_rec = intersection_sorted(common_left.values, common_right.values)
 
     data_joined, global_left, global_right = join_low_level(
         common_left.values, common_left.index,
@@ -98,7 +99,7 @@ def full_outer_join(table_left, table_right, column, check_sorted=True):
         if not np.all(common_right.values == np.sort(common_right.values)):
             raise ValueError('Trying to join with a non sorted column')
 
-    common_rec = np.union1d(common_left.values, common_right.values)
+    common_rec = union_sorted(common_left.values, common_right.values)
 
     data_joined, global_left, global_right = join_low_level(
         common_left.values, common_left.index,

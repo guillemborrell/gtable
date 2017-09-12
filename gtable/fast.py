@@ -524,16 +524,16 @@ def isin_sorted(base, test):
 
 @jit(nopython=True, nogil=True, cache=True)
 def intersection_sorted(base, test):
-    result = np.empty(base.shape, dtype=np.bool_)
+    result = np.empty(base.shape, dtype=base.dtype)
     cursor_result = 0
     cursor_test = 0
     for elem in base:
-        result[cursor_result] = False
         for i in range(len(test)):
             if elem < test[cursor_test]:
                 break
             elif elem == test[cursor_test]:
-                result[cursor_result] = True
+                result[cursor_result] = elem
+                cursor_result += 1
                 break
             else:
                 # array exhausted
@@ -543,35 +543,80 @@ def intersection_sorted(base, test):
                 else:
                     cursor_test += 1
 
-        cursor_result += 1
-
-    return result
+    return result[:cursor_result]
 
 
 @jit(nopython=True, nogil=True, cache=True)
-def intersection_sorted(base, test):
-    result = np.empty(base.shape, dtype=np.bool_)
+def union_sorted(base, test):
+    result = np.empty(base.shape[0] + test.shape[0], dtype=base.dtype)
     cursor_result = 0
+    cursor_base = 0
     cursor_test = 0
-    for elem in base:
-        result[cursor_result] = False
-        for i in range(len(test)):
-            if elem < test[cursor_test]:
-                break
-            elif elem == test[cursor_test]:
-                result[cursor_result] = True
-                break
-            else:
-                # array exhausted
-                if cursor_test == len(test) - 1:
-                    break
-                # Advance test array
+    started = False
+
+    while cursor_base < len(base) and cursor_test < len(test):
+        if base[cursor_base] < test[cursor_test]:
+            if started:
+                if base[cursor_base] == result[cursor_result - 1]:
+                    continue
                 else:
+                    result[cursor_result] = base[cursor_base]
+                    cursor_result += 1
+                    cursor_base += 1
+            else:
+                result[cursor_result] = base[cursor_base]
+                cursor_result += 1
+                cursor_base += 1
+                started = True
+
+        elif test[cursor_test] < base[cursor_base]:
+            if started:
+                if test[cursor_test] == result[cursor_result - 1]:
+                    continue
+                else:
+                    result[cursor_result] = test[cursor_test]
+                    cursor_result += 1
+                    cursor_test += 1
+            else:
+                result[cursor_result] = test[cursor_test]
+                cursor_result += 1
+                cursor_test += 1
+                started = True
+
+        else:
+            if started:
+                if test[cursor_test] == result[cursor_result - 1]:
+                    continue
+                else:
+                    result[cursor_result] = test[cursor_test]
+                    cursor_result += 1
+                    cursor_base += 1
                     cursor_test += 1
 
-        cursor_result += 1
+            else:
+                result[cursor_result] = test[cursor_test]
+                cursor_result += 1
+                cursor_base += 1
+                cursor_test += 1
+                started = True
 
-    return result
+    while cursor_base < len(base):
+        if base[cursor_base] == result[cursor_result - 1]:
+            continue
+        else:
+            result[cursor_result] = base[cursor_base]
+            cursor_result += 1
+            cursor_base += 1
+
+    while cursor_test < len(test):
+        if test[cursor_test] == result[cursor_result - 1]:
+            continue
+        else:
+            result[cursor_result] = test[cursor_test]
+            cursor_result += 1
+            cursor_test += 1
+
+    return result[:cursor_result]
 
 
 @jit(nopython=True, nogil=True, cache=True)
