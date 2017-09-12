@@ -17,7 +17,10 @@ def apply_fast_add(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=result_dtype)
+        if len(value_left) > len(value_right):
+            result = np.empty(len(value_left), dtype=result_dtype)
+        else:
+            result = np.empty(len(value_right), dtype=result_dtype)
         cursor_result = 0
         cursor_left = 0
         cursor_right = 0
@@ -35,7 +38,7 @@ def apply_fast_add(value_left, value_right, index_left, index_right):
             elif ir:
                 cursor_right += 1
 
-        return result, index
+        return result[:cursor_result], index
 
     return f
 
@@ -49,7 +52,10 @@ def apply_fast_sub(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=result_dtype)
+        if len(value_left) > len(value_right):
+            result = np.empty(len(value_left), dtype=result_dtype)
+        else:
+            result = np.empty(len(value_right), dtype=result_dtype)
 
         cursor_result = 0
         cursor_left = 0
@@ -68,7 +74,7 @@ def apply_fast_sub(value_left, value_right, index_left, index_right):
             elif ir:
                 cursor_right += 1
 
-        return result, index
+        return result[:cursor_result], index
 
     return f
 
@@ -82,7 +88,10 @@ def apply_fast_mul(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=result_dtype)
+        if len(value_left) > len(value_right):
+            result = np.empty(len(value_left), dtype=result_dtype)
+        else:
+            result = np.empty(len(value_right), dtype=result_dtype)
 
         cursor_result = 0
         cursor_left = 0
@@ -101,7 +110,7 @@ def apply_fast_mul(value_left, value_right, index_left, index_right):
             elif ir:
                 cursor_right += 1
 
-        return result, index
+        return result[:cursor_result], index
 
     return f
 
@@ -115,7 +124,10 @@ def apply_fast_truediv(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=result_dtype)
+        if len(value_left) > len(value_right):
+            result = np.empty(len(value_left), dtype=result_dtype)
+        else:
+            result = np.empty(len(value_right), dtype=result_dtype)
 
         cursor_result = 0
         cursor_left = 0
@@ -134,7 +146,7 @@ def apply_fast_truediv(value_left, value_right, index_left, index_right):
             elif ir:
                 cursor_right += 1
 
-        return result, index
+        return result[:cursor_result], index
 
     return f
 
@@ -142,7 +154,10 @@ def apply_fast_truediv(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_floordiv(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.int64)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.int64)
+    else:
+        result = np.empty(len(value_right), dtype=np.int64)
 
     cursor_result = 0
     cursor_left = 0
@@ -161,7 +176,7 @@ def apply_fast_floordiv(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @generated_jit(nopython=True, nogil=True, cache=True)
@@ -173,7 +188,10 @@ def apply_fast_pow(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=result_dtype)
+        if len(value_left) > len(value_right):
+            result = np.empty(len(value_left), dtype=result_dtype)
+        else:
+            result = np.empty(len(value_right), dtype=result_dtype)
 
         cursor_result = 0
         cursor_left = 0
@@ -192,7 +210,7 @@ def apply_fast_pow(value_left, value_right, index_left, index_right):
             elif ir:
                 cursor_right += 1
 
-        return result, index
+        return result[:cursor_result], index
 
     return f
 
@@ -206,7 +224,10 @@ def apply_fast_mod(value_left, value_right, index_left, index_right):
 
     def f(value_left, value_right, index_left, index_right):
         index = index_left * index_right
-        result = np.empty(index.sum(), dtype=result_dtype)
+        if len(value_left) > len(value_right):
+            result = np.empty(len(value_left), dtype=result_dtype)
+        else:
+            result = np.empty(len(value_right), dtype=result_dtype)
 
         cursor_result = 0
         cursor_left = 0
@@ -225,7 +246,7 @@ def apply_fast_mod(value_left, value_right, index_left, index_right):
             elif ir:
                 cursor_right += 1
 
-        return result, index
+        return result[:cursor_result], index
 
     return f
 
@@ -233,7 +254,10 @@ def apply_fast_mod(value_left, value_right, index_left, index_right):
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_gt(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -252,13 +276,16 @@ def apply_fast_gt(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_ge(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_left), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -277,13 +304,16 @@ def apply_fast_ge(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_lt(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -302,13 +332,16 @@ def apply_fast_lt(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_le(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -327,13 +360,16 @@ def apply_fast_le(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_and(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_left = 0
     cursor_right = 0
@@ -355,13 +391,16 @@ def apply_fast_and(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_or(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_left = 0
     cursor_right = 0
@@ -383,13 +422,16 @@ def apply_fast_or(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_xor(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_left = 0
     cursor_right = 0
@@ -417,13 +459,16 @@ def apply_fast_xor(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_eq(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -444,13 +489,16 @@ def apply_fast_eq(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
 def apply_fast_ne(value_left, value_right, index_left, index_right):
     index = index_left * index_right
-    result = np.empty(index.sum(), dtype=np.bool_)
+    if len(value_left) > len(value_right):
+        result = np.empty(len(value_left), dtype=np.bool_)
+    else:
+        result = np.empty(len(value_right), dtype=np.bool_)
 
     cursor_result = 0
     cursor_left = 0
@@ -471,7 +519,7 @@ def apply_fast_ne(value_left, value_right, index_left, index_right):
         elif ir:
             cursor_right += 1
 
-    return result, index
+    return result[:cursor_result], index
 
 
 @jit(nopython=True, nogil=True, cache=True)
