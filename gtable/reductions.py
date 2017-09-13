@@ -52,6 +52,7 @@ def reduce_by_key(table, column_name, func, check_sorted=True):
     return t
 
 
+# Remember to update this dict when adding a new reduction
 reduce_funcs = {'sum': reduce_sum,
                 'prod': reduce_prod}
 
