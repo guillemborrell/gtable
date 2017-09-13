@@ -24,6 +24,10 @@ def get_reductor():
     from gtable.reductions import reduce_funcs, reduce_by_key
 
     class ReductorByKey:
+        @staticmethod
+        def __dir__():
+            return [f for f in reduce_funcs]
+
         def __init__(self, table, column, check_sorted=False):
             for reduction_f in reduce_funcs:
                 self.__dict__[reduction_f] = partial(
