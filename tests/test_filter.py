@@ -73,3 +73,33 @@ def test_filter_date():
     assert np.all(t1.a.values == t.a.values[2:5])
 
 
+def test_crop_1():
+    t = Table()
+    t.a = np.random.rand(10)
+    t.b = pd.date_range('2000-01-01', freq='D', periods=10)
+    t.c = np.array([1, 2])
+    t.add_column('d', np.array([1, 2]), align='bottom')
+    t1 = t.crop('c')
+
+    assert np.all(t1.c.values == np.array([1, 2]))
+    assert np.all(t1.d.values == np.array([]))
+    assert np.all(t1.a.values == t.a.values[:2])
+    assert np.all(t1.b.values == t.b.values[:2])
+
+
+def test_crop_2():
+    t = Table()
+    t.a = np.random.rand(10)
+    t.b = pd.date_range('2000-01-01', freq='D', periods=10)
+    t.c = np.array([1, 2])
+    t.add_column('d', np.array([1, 2]), align='bottom')
+    t1 = t.crop('d')
+
+    assert np.all(t1.c.values == np.array([]))
+    assert np.all(t1.d.values == np.array([1, 2]))
+    assert np.all(t1.a.values == t.a.values[-2:])
+    assert np.all(t1.b.values == t.b.values[-2:])
+
+
+
+

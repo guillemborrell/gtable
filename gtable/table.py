@@ -132,6 +132,14 @@ class Table:
         t.data, t.keys, t.index = filter_table(self, predicate)
         return t
 
+    def crop(self, key):
+        """Purge the records where the column key is empty"""
+        t = Table()
+        col = self.get(key)
+        predicate = (col == col)
+        t.data, t.keys, t.index = filter_table(self, predicate)
+        return t
+
     def first_record(self, fill=False):
         """Returns the first record of the table"""
         return first_record(self, fill)
