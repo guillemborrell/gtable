@@ -688,67 +688,11 @@ def join_low_level(data_left, index_left,
     filtered_data_right, index_right = apply_mask_column(
         data_right, index_right, data_filter_right)
 
-    length = 0
     left_len = len(filtered_data_left)
     right_len = len(filtered_data_right)
-    cur_left = 0
-    cur_right = 0
-    stop_left = False
-    stop_right = False
-
-    # Go through the whole data just to get the length of the result.
-    for i in range(left_len + right_len):  # Upper limit to prevent Inf loop
-        if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
-            if stop_left:
-                if data_filter_right[cur_right]:
-                    length += 1
-                if cur_right == right_len - 1:
-                    stop_right = True
-                else:
-                    cur_right += 1
-            else:
-                if data_filter_left[cur_left]:
-                    length += 1
-                if cur_left == left_len - 1:
-                    stop_left = True
-                else:
-                    cur_left += 1
-
-        elif filtered_data_left[cur_left] == filtered_data_right[cur_right]:
-            # Both filters always true
-            if cur_left == left_len - 1:
-                stop_left = True
-            else:
-                cur_left += 1
-            if cur_right == right_len - 1:
-                stop_right = True
-            else:
-                cur_right += 1
-
-            length += 1
-
-        else:
-            if stop_right:
-                if data_filter_left[cur_left]:
-                    length += 1
-                if cur_left == left_len - 1:
-                    stop_left = True
-                else:
-                    cur_left += 1
-            else:
-                if data_filter_right[cur_right]:
-                    length += 1
-                if cur_right == right_len - 1:
-                    stop_right = True
-                else:
-                    cur_right += 1
-
-        if stop_left and stop_right:
-            break
-
-    data_joined = np.empty(length, dtype=filtered_data_left.dtype)
-    order_left = np.empty(length, dtype=np.int64)
-    order_right = np.empty(length, dtype=np.int64)
+    data_joined = np.empty(left_len + right_len, dtype=filtered_data_left.dtype)
+    order_left = np.empty(left_len + right_len, dtype=np.int64)
+    order_right = np.empty(left_len + right_len, dtype=np.int64)
 
     stop_left = False
     stop_right = False
@@ -756,7 +700,7 @@ def join_low_level(data_left, index_left,
     cur_right = 0
     added = 0
 
-    while added < length:  # Upper limit to prevent Inf loop
+    while added < left_len + right_len:  # Upper limit to prevent Inf loop
         if filtered_data_left[cur_left] < filtered_data_right[cur_right]:
             if stop_left:
                 if data_filter_right[cur_right]:
@@ -824,17 +768,17 @@ def join_low_level(data_left, index_left,
     index_mapping_left = np.arange(len(index_left))[index_left == 1]
     index_mapping_right = np.arange(len(index_right))[index_right == 1]
 
-    global_left = index_mapping_left[order_left]
-    global_right = index_mapping_right[order_right]
+    global_left = index_mapping_left[order_left[:added]]
+    global_right = index_mapping_right[order_right[:added]]
 
-    mask_left = isin_sorted(data_joined, data_left)
-    mask_right = isin_sorted(data_joined, data_right)
+    mask_left = isin_sorted(data_joined[:added], data_left)
+    mask_right = isin_sorted(data_joined[:added], data_right)
 
     # Clean data with the mask
     global_left[np.where(~mask_left)] = -1
     global_right[np.where(~mask_right)] = -1
 
-    return data_joined, global_left, global_right
+    return data_joined[:added], global_left, global_right
 
 
 @jit(nopython=True, nogil=True, cache=True)
@@ -883,35 +827,8 @@ def reindex_join(left_index, right_index,
                  left_global_index, right_global_index):
     """Applies a global index"""
     # TODO: Clean unused variables.
-    len_left = 0
-    len_right = 0
-    idx_left_cur = 0
-    idx_right_cur = 0
-
-    for left_gidx, right_gidx in zip(left_global_index, right_global_index):
-        if left_gidx >= 0:
-            if left_index[idx_left_cur] > 0:
-                len_left += 1
-
-            else:
-                if right_gidx >= 0:
-                    if right_index[idx_right_cur] > 0:
-                        len_right += 1
-                    idx_right_cur += 1
-
-            idx_left_cur += 1
-                    
-        elif right_gidx >= 0:
-            if right_index[idx_right_cur] > 0:
-                len_right += 1
-
-            else:
-                if left_gidx >= 0:
-                    if left_index[idx_left_cur] > 0:
-                        len_left += 1
-                    idx_left_cur += 1
-
-            idx_right_cur += 1
+    len_left = len(left_index)
+    len_right = len(right_index)
 
     lid = np.empty(len_left + len_right, dtype=np.bool_)
     rid = np.empty(len_left + len_right, dtype=np.bool_)
@@ -976,7 +893,12 @@ def reindex_join(left_index, right_index,
             idx_right_cur += 1
         idx_index += 1
 
-    return index_global, left_global, right_global, lid, rid, idx_data
+    return (index_global[:idx_index],
+            left_global[:idx_left],
+            right_global[:idx_right],
+            lid[:idx_data],
+            rid[:idx_data],
+            idx_data)
 
 
 # Same wrapper for column join
