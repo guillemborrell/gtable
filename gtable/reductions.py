@@ -1,5 +1,5 @@
 import numpy as np
-from .fast import reduce_sum, reduce_prod
+from .fast import reduce_sum, reduce_prod, reduce_mean, reduce_std
 from .table import Table
 
 
@@ -54,5 +54,6 @@ def reduce_by_key(table, column_name, func, check_sorted=True):
 
 # Remember to update this dict when adding a new reduction
 reduce_funcs = {'sum': reduce_sum,
-                'prod': reduce_prod}
-
+                'prod': reduce_prod,
+                'mean': reduce_mean,
+                'std': reduce_std}

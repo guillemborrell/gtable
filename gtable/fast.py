@@ -961,7 +961,7 @@ def reduce_sum(key_data, key_index, col_data, col_index, size):
             if idxk == 1:
                 prev_key_data = key_data[key_data_cursor]
 
-        return reduced[:red_index+1][:], new_index
+        return reduced[:red_index+1], new_index
 
     return f
 
@@ -1011,7 +1011,121 @@ def reduce_prod(key_data, key_index, col_data, col_index, size):
             if idxk == 1:
                 prev_key_data = key_data[key_data_cursor]
 
-        return reduced[:red_index+1][:], new_index
+        return reduced[:red_index+1], new_index
+
+    return f
+
+
+@generated_jit(nopython=True, nogil=True, cache=True)
+def reduce_mean(key_data, key_index, col_data, col_index, size):
+    result_dtype = col_data.dtype
+
+    def f(key_data, key_index, col_data, col_index, size):
+        prev_key_data = key_data[0]
+
+        reduction_started = False
+        new_index = np.zeros(size, dtype=np.uint8)
+        sum = np.empty(size, dtype=result_dtype)
+        num = np.empty(size, dtype=np.int64)
+        key_data_cursor = -1
+        col_data_cursor = -1
+        new_index_cursor = -1
+        red_index = 0
+
+        for idxk, idxd in zip(key_index, col_index):
+            if idxk == 1:
+                key_data_cursor += 1
+                if prev_key_data != key_data[key_data_cursor] or \
+                                key_data_cursor == 0:
+                    new_index_cursor += 1
+
+            if idxd == 1:
+                col_data_cursor += 1
+
+            if idxk == idxd == 1:
+                if reduction_started:
+                    if prev_key_data == key_data[key_data_cursor]:
+                        # Here is the reduction of repeated keys
+                        sum[red_index] += col_data[col_data_cursor]
+                        num[red_index] += 1
+                    else:
+                        red_index += 1
+                        # Here is the addition of the first key
+                        sum[red_index] = col_data[col_data_cursor]
+                        new_index[new_index_cursor] = 1
+                        num[red_index] = 1
+                else:
+                    # Here is the addition of the absolutely first key
+                    sum[red_index] = col_data[col_data_cursor]
+                    num[red_index] = 1
+                    new_index[new_index_cursor] = 1
+                    prev_key_data = key_data[key_data_cursor]
+                    reduction_started = True
+
+            if idxk == 1:
+                prev_key_data = key_data[key_data_cursor]
+
+        return sum[:red_index + 1] / num[:red_index + 1], new_index
+
+    return f
+
+
+@generated_jit(nopython=True, nogil=True, cache=True)
+def reduce_std(key_data, key_index, col_data, col_index, size):
+    result_dtype = col_data.dtype
+
+    def f(key_data, key_index, col_data, col_index, size):
+        prev_key_data = key_data[0]
+
+        reduction_started = False
+        new_index = np.zeros(size, dtype=np.uint8)
+        sum = np.empty(size, dtype=result_dtype)
+        sumsq = np.empty(size, dtype=result_dtype)
+        num = np.empty(size, dtype=np.int64)
+        key_data_cursor = -1
+        col_data_cursor = -1
+        new_index_cursor = -1
+        red_index = 0
+
+        for idxk, idxd in zip(key_index, col_index):
+            if idxk == 1:
+                key_data_cursor += 1
+                if prev_key_data != key_data[key_data_cursor] or \
+                                key_data_cursor == 0:
+                    new_index_cursor += 1
+
+            if idxd == 1:
+                col_data_cursor += 1
+
+            if idxk == idxd == 1:
+                if reduction_started:
+                    if prev_key_data == key_data[key_data_cursor]:
+                        # Here is the reduction of repeated keys
+                        sum[red_index] += col_data[col_data_cursor]
+                        sumsq[red_index] += col_data[col_data_cursor]**2
+                        num[red_index] += 1
+                    else:
+                        red_index += 1
+                        # Here is the addition of the first key
+                        sum[red_index] = col_data[col_data_cursor]
+                        sumsq[red_index] = col_data[col_data_cursor]**2
+                        new_index[new_index_cursor] = 1
+                        num[red_index] = 1
+                else:
+                    # Here is the addition of the absolutely first key
+                    sum[red_index] = col_data[col_data_cursor]
+                    sumsq[red_index] = col_data[col_data_cursor]**2
+                    num[red_index] = 1
+                    new_index[new_index_cursor] = 1
+                    prev_key_data = key_data[key_data_cursor]
+                    reduction_started = True
+
+            if idxk == 1:
+                prev_key_data = key_data[key_data_cursor]
+
+        meansq = (sum[:red_index + 1] / num[:red_index + 1])**2
+        sumsqn = sumsq[:red_index + 1] / num[:red_index + 1]
+        return np.sqrt(sumsqn - meansq), new_index
 
     return f
 
