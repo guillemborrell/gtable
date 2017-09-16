@@ -20,7 +20,7 @@ def _check_length(i, k, this_length, length_last):
     return length_last
 
 
-def get_reductor():
+def get_reductor(out_check_sorted):
     from gtable.reductions import reduce_funcs, reduce_by_key
 
     class ReductorByKey:
@@ -28,7 +28,7 @@ def get_reductor():
         def __dir__():
             return [f for f in reduce_funcs]
 
-        def __init__(self, table, column, check_sorted=False):
+        def __init__(self, table, column, check_sorted=out_check_sorted):
             for reduction_f in reduce_funcs:
                 self.__dict__[reduction_f] = partial(
                     reduce_by_key, table, column, reduction_f, check_sorted)
@@ -208,7 +208,7 @@ class Table:
         :param check_sorted:
         :return:
         """
-        return get_reductor()(self, column, check_sorted)
+        return get_reductor(check_sorted)(self, column)
 
     def required_columns(self, *args):
         """
@@ -238,6 +238,12 @@ class Table:
         """Create a table from a pandas dataframe"""
         table = {'idx': dataframe.index.values}
         table.update({k: dataframe[k].values for k in dataframe})
+
+        # Try to reconvert columns of objects
+        for k in table:
+            if table[k].dtype == np.dtype('O'):
+                table[k] = np.array(list(table[k]))
+
         return cls(table)
 
     @staticmethod
