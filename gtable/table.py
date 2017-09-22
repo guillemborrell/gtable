@@ -200,6 +200,24 @@ class Table:
             self[key], self.index[self.keys.index(key), :] = fillna_column(
                 self[key], self._index_column(key), reverse, fillvalue)
 
+    def fill_column(self, key, fillvalue):
+        """
+        Fill N/A elements in the given columns with fillvalue
+
+        :param key: String, list or tuple with the column names to be filled.
+        :param fillvalue: Scalar to fill the N/A elements
+        :return:
+        """
+        if (type(key) == list) or (type(key) == tuple):
+            for k in key:
+                col = getattr(self, k)
+                col.fill(fillvalue)
+                setattr(self, k, col)
+        else:
+                col = getattr(self, key)
+                col.fill(fillvalue)
+                setattr(self, key, col)
+
     def reduce_by_key(self, column, check_sorted=False):
         """
         Reduce by key
