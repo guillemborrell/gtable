@@ -35,6 +35,9 @@ def reduce_by_key(table, column_name, func, check_sorted=True):
 
     for col in other_cols:
         col_data = table[col]
+        if col_data.dtype.kind in {'S', 'U'}:
+            # Strings cannot be arithmetically reduced.
+            continue
         col_index = table._index_column(col)
 
         reduced_col_data, reduced_col_index = reduce_funcs[func](

@@ -2,13 +2,11 @@ Gtable
 ======
 
 Gtable is a container for tabular or tabular-like data designed with speed in
-mind. It is heavily based on `pandas <http://pandas.pydata.org>`_, and it relies
-on many of its capabilities. It tries to improve one some aspects of
+mind. It tries to improve one some aspects of
 using pandas data types Series and DataFrame as containers for simple
 computations:
 
-* It tries to reduce the overhead for column access, creation, and
-  concatenation.
+* It Reduces the overhead for column access, creation, and concatenation.
 
 * It supports sparse data with bitmap indexing.
 

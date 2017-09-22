@@ -1,5 +1,5 @@
-Basic features
-==============
+Gtable and Pandas
+=================
 
 Let's start by creating a table
 

@@ -200,6 +200,25 @@ class Table:
             self[key], self.index[self.keys.index(key), :] = fillna_column(
                 self[key], self._index_column(key), reverse, fillvalue)
 
+    def fill_column(self, key, fillvalue):
+        """
+        Fill N/A elements in the given columns with fillvalue
+
+        :param key:
+        :param fillvalue:
+        :return:
+        """
+        if (type(key) == list) or (type(key) == tuple):
+            for k in key:
+                col = getattr(self, k)
+                col.fill(fillvalue)
+                setattr(self, k, col)
+
+        else:
+            col = getattr(self, key)
+            col.fill(fillvalue)
+            setattr(self, key, col)
+
     def reduce_by_key(self, column, check_sorted=False):
         """
         Reduce by key
@@ -209,6 +228,9 @@ class Table:
         :return:
         """
         return get_reductor()(self, column, check_sorted)
+
+    def group_by(self, *columns):
+        pass
 
     def required_columns(self, *args):
         """
@@ -238,6 +260,12 @@ class Table:
         """Create a table from a pandas dataframe"""
         table = {'idx': dataframe.index.values}
         table.update({k: dataframe[k].values for k in dataframe})
+
+        # Try to transform objects to a lower level type:
+        for k in table:
+            if table[k].dtype == np.dtype('O'):
+                table[k] = np.array(table[k].tolist())
+
         return cls(table)
 
     @staticmethod

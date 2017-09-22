@@ -112,6 +112,18 @@ class Column:
         self.values, self.index = fillna_column(self.values, self.index,
                                                 reverse, fillvalue)
 
+    def fill(self, fillvalue):
+        """
+        Fills the N/A values of the column with the fillvalue
+        :param fillvalue:
+        :return:
+        """
+        new_values = np.empty(len(self.index), dtype=self.values.dtype)
+        new_values[self.index.astype(np.bool_)] = self.values
+        new_values[~self.index.astype(np.bool_)] = fillvalue
+        self.values = new_values
+        self.index = np.ones(len(self.index))
+
     def reorder(self, order):
         """
         Reorder the column inplace
@@ -179,6 +191,13 @@ class Column:
         :return:
         """
         return self.values.shape == (0,)
+
+    def is_sorted(self):
+        """
+        True if the column is sorted
+        :return:
+        """
+        return np.sort(self.values) == self.values
 
     def contains(self, item):
         """
