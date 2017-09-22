@@ -20,7 +20,7 @@ def _check_length(i, k, this_length, length_last):
     return length_last
 
 
-def get_reductor():
+def get_reductor(out_check_sorted):
     from gtable.reductions import reduce_funcs, reduce_by_key
 
     class ReductorByKey:
@@ -28,7 +28,7 @@ def get_reductor():
         def __dir__():
             return [f for f in reduce_funcs]
 
-        def __init__(self, table, column, check_sorted=False):
+        def __init__(self, table, column, check_sorted=out_check_sorted):
             for reduction_f in reduce_funcs:
                 self.__dict__[reduction_f] = partial(
                     reduce_by_key, table, column, reduction_f, check_sorted)
@@ -200,25 +200,6 @@ class Table:
             self[key], self.index[self.keys.index(key), :] = fillna_column(
                 self[key], self._index_column(key), reverse, fillvalue)
 
-    def fill_column(self, key, fillvalue):
-        """
-        Fill N/A elements in the given columns with fillvalue
-
-        :param key:
-        :param fillvalue:
-        :return:
-        """
-        if (type(key) == list) or (type(key) == tuple):
-            for k in key:
-                col = getattr(self, k)
-                col.fill(fillvalue)
-                setattr(self, k, col)
-
-        else:
-            col = getattr(self, key)
-            col.fill(fillvalue)
-            setattr(self, key, col)
-
     def reduce_by_key(self, column, check_sorted=False):
         """
         Reduce by key
@@ -227,10 +208,7 @@ class Table:
         :param check_sorted:
         :return:
         """
-        return get_reductor()(self, column, check_sorted)
-
-    def group_by(self, *columns):
-        pass
+        return get_reductor(check_sorted)(self, column)
 
     def required_columns(self, *args):
         """
@@ -261,10 +239,10 @@ class Table:
         table = {'idx': dataframe.index.values}
         table.update({k: dataframe[k].values for k in dataframe})
 
-        # Try to transform objects to a lower level type:
+        # Try to reconvert columns of objects
         for k in table:
             if table[k].dtype == np.dtype('O'):
-                table[k] = np.array(table[k].tolist())
+                table[k] = np.array(list(table[k]))
 
         return cls(table)
 
