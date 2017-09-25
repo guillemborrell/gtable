@@ -292,8 +292,7 @@ class Table:
 
     @staticmethod
     def __dir__():
-        return ['copy', 'add_column', 'stitch', 'merge', 'records', 'to_pandas',
-                'to_dict', 'filter', 'dropnan']
+        return []
     
     def __getattr__(self, key):
         return Column(self.data[self.keys.index(key)], self._index_column(key))
