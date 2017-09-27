@@ -207,9 +207,9 @@ class Column:
         :return:
         """
         if isinstance(item, np.ndarray):
-            return Column(np.isin(self.values, item), self.index)
+            return Column(np.in1d(self.values, item), self.index)
         elif type(item) == Column:
-            return Column(np.isin(self.values, item.values), self.index)
+            return Column(np.in1d(self.values, item.values), self.index)
         else:
             raise ValueError('Argument must be an array or a column.')
 
