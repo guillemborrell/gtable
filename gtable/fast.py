@@ -606,6 +606,7 @@ def union_sorted(base, test):
         if base[cursor_base] < test[cursor_test]:
             if started:
                 if base[cursor_base] == result[cursor_result - 1]:
+                    cursor_base += 1
                     continue
                 else:
                     result[cursor_result] = base[cursor_base]
@@ -620,6 +621,7 @@ def union_sorted(base, test):
         elif test[cursor_test] < base[cursor_base]:
             if started:
                 if test[cursor_test] == result[cursor_result - 1]:
+                    cursor_test += 1
                     continue
                 else:
                     result[cursor_result] = test[cursor_test]
@@ -634,6 +636,8 @@ def union_sorted(base, test):
         else:
             if started:
                 if test[cursor_test] == result[cursor_result - 1]:
+                    cursor_base += 1
+                    cursor_test += 1
                     continue
                 else:
                     result[cursor_result] = test[cursor_test]
@@ -650,6 +654,7 @@ def union_sorted(base, test):
 
     while cursor_base < len(base):
         if base[cursor_base] == result[cursor_result - 1]:
+            cursor_base += 1
             continue
         else:
             result[cursor_result] = base[cursor_base]
@@ -658,6 +663,7 @@ def union_sorted(base, test):
 
     while cursor_test < len(test):
         if test[cursor_test] == result[cursor_result - 1]:
+            cursor_test += 1
             continue
         else:
             result[cursor_result] = test[cursor_test]
