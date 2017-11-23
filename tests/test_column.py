@@ -14,12 +14,13 @@ def test_mul():
 
 def test_add_align():
     t = Table()
-    t.add_column('a', [1, 2, 3, 4, 5, 6])
-    t.add_column('b', [1, 2, 3], align='bottom')
+    t.add_column('a', [1, 2, 3, 4, 5, 6], dtype=np.int64)
+    t.add_column('b', [1, 2, 3], align='bottom', dtype=np.int64)
 
     c = t.a + t.b
 
     assert np.all(c.values == np.array([5, 7, 9]))
+    assert t.a.values.dtype == np.int64
     assert c.values.dtype == np.int64
 
 

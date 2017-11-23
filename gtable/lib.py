@@ -355,13 +355,14 @@ def from_chunks(tables):
     return result
 
 
-def add_column(table, k, v, index=None, align='top'):
+def add_column(table, k, v, dtype=None, index=None, align='top'):
     """
     Adds a column to a table inplace
     
     :param table: 
     :param k: 
-    :param v: 
+    :param v:
+    :param dtype:
     :param index:
     :param align:
     :return: 
@@ -375,7 +376,11 @@ def add_column(table, k, v, index=None, align='top'):
         if len(v) > 0 and type(v[0]) == pd.Timestamp:
             table.data.append(pd.DatetimeIndex(v).values)
         else:
-            table.data.append(np.array(v))
+            if dtype is None:
+                # Infer the dtype of the list
+                table.data.append(np.array(v))
+            else:
+                table.data.append(np.array(v, dtype=dtype))
         table.keys.append(k)
 
     elif type(v) == np.ndarray:

@@ -99,11 +99,11 @@ class Table:
 
         return t
 
-    def add_column(self, k, v, index=None, align='top'):
+    def add_column(self, k, v, dtype=None, index=None, align='top'):
         """
         Column concatenation.
         """
-        add_column(self, k, v, index, align=align)
+        add_column(self, k, v, dtype, index, align=align)
 
     def del_column(self, k):
         """
