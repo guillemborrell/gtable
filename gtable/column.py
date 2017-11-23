@@ -104,6 +104,11 @@ class Column:
         """Changes the (numpy) datatype of the values"""
         self.values[:] = self.values.astype(dtype)
 
+    @property
+    def dtype(self):
+        """Returns the datatype of the column"""
+        return self.values.dtype
+
     def fillna(self, reverse=False, fillvalue=None):
         """
         Fills the non available value sequentially with the previous

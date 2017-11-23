@@ -462,6 +462,13 @@ def dropnan_table(table):
         index[enumerator] = 0
 
 
+def required_column(table, key, dtype):
+    """Adds a column inplace with the given name and type"""
+    table.keys.append(key)
+    table.data.append(np.array([], dtype=dtype))
+    table.index = np.vstack((table.index, np.zeros((1, table.index.shape[1]), dtype=np.uint8)))
+
+
 def required_columns(table, *args):
     """Adds the required columns inplace"""
     new_cols = set(args) - set(table.keys)
