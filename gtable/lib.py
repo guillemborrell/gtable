@@ -464,6 +464,9 @@ def dropnan_table(table):
 
 def required_column(table, key, dtype):
     """Adds a column inplace with the given name and type"""
+    if key in table.keys:
+        raise KeyError('Column name already present')
+
     table.keys.append(key)
     table.data.append(np.array([], dtype=dtype))
     table.index = np.vstack((table.index, np.zeros((1, table.index.shape[1]), dtype=np.uint8)))
