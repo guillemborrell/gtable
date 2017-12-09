@@ -50,16 +50,16 @@ class TimeSuite:
         self.tlarge.c = self.tlarge.a + self.tlarge.b
 
     def time_pandas_mul_setattr(self):
-        self.df.c = self.df.a + self.df.b
+        self.df['c'] = self.df.a + self.df.b
 
     def time_pandas_setattr_own(self):
-        self.df.a = self.df.a
+        self.df['a'] = self.df.a
 
     def time_pandas_mul_setattr_small(self):
-        self.df_small.c = self.df_small.a + self.df_small.b
+        self.df_small['c'] = self.df_small.a + self.df_small.b
 
     def time_pandas_mul_setattr_vsmall(self):
-        self.df_vsmall.c = self.df_vsmall.a + self.df_vsmall.b
+        self.df_vsmall['c'] = self.df_vsmall.a + self.df_vsmall.b
 
         
 if __name__ == '__main__':
