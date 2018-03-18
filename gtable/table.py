@@ -136,7 +136,7 @@ class Table:
         t.data, t.keys, t.index = filter_table(self, predicate)
         return t
 
-    def seive(self, idx):
+    def sieve(self, idx):
         """Filter table using a one-dimensional array of boolean values"""
         t = Table()
         # This could be improved, but added as syntactic sugar ATM.

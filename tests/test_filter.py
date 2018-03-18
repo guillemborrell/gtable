@@ -107,7 +107,7 @@ def test_seive():
     t.b = pd.date_range('2000-01-01', freq='D', periods=10)
     t.c = np.array(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'])
 
-    t1 = t.seive(np.array([0, 0, 0, 0, 0, 1, 1, 1, 0, 0], dtype=np.bool_))
+    t1 = t.sieve(np.array([0, 0, 0, 0, 0, 1, 1, 1, 0, 0], dtype=np.bool_))
 
     print(t1.b.values)
     assert t1.a.values[0] == 5
