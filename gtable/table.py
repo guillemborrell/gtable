@@ -136,6 +136,13 @@ class Table:
         t.data, t.keys, t.index = filter_table(self, predicate)
         return t
 
+    def seive(self, idx):
+        """Filter table using a one-dimensional array of boolean values"""
+        t = Table()
+        # This could be improved, but added as syntactic sugar ATM.
+        t.data, t.keys, t.index = filter_table(self, Column(idx.astype(np.int8), np.ones_like(idx)))
+        return t
+
     def crop(self, key):
         """Purge the records where the column key is empty"""
         t = Table()
