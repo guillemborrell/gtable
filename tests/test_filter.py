@@ -101,7 +101,7 @@ def test_crop_2():
     assert np.all(t1.b.values == t.b.values[-2:])
 
 
-def test_seive():
+def test_sieve():
     t = Table()
     t.a = np.arange(10)
     t.b = pd.date_range('2000-01-01', freq='D', periods=10)
