@@ -109,7 +109,7 @@ def merge_table(table_left, table_right, column):
             right_key = table_right.keys.index(column)
             new_index[i, :] = np.insert(
                 np.zeros(left_length, dtype=np.uint8), insertions,
-                np.ones(len(insertions), dtype=np.uint8))
+                table_right.index[right_key, :])
             new_data.append(table_right.data[right_key])
             new_keys.append(column)
 
