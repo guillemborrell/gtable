@@ -102,6 +102,38 @@ def test_fill_column():
     assert np.all(b.values == np.array([3, 3, 1, 3, 3, 3, 3, 2, 3, 3]))
 
 
+def test_fill_empty_column():
+    t = Table()
+    t.keys = ['a', 'b']
+    t.data = [
+        np.arange(10),
+        np.array([])]
+    t.index = np.array(
+        [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.uint8)
+
+    b = t.b
+    b.fill(fillvalue=3)
+
+    assert np.all(b.values == np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]))
+
+
+def test_fill_full_column():
+    t = Table()
+    t.keys = ['a', 'b']
+    t.data = [
+        np.arange(10),
+        np.arange(10)]
+    t.index = np.array(
+        [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], dtype=np.uint8)
+
+    b = t.b
+    b.fill(fillvalue=3)
+
+    assert np.all(b.values == np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+
+
 def test_fill_table():
     t = Table()
     t.keys = ['a', 'b']
