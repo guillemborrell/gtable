@@ -18,5 +18,5 @@ setup(name='gtable',
           'License :: OSI Approved :: BSD License',
           'Natural Language :: English',
           'Programming Language :: Python :: 3 :: Only'
-      ]
+      ],
       install_requires=['numpy', 'pandas', 'numba'])
