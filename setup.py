@@ -5,10 +5,14 @@ from setuptools import setup
 with open('gtable/version.py') as f:
     exec(f.read())
 
+with open('README.rst') as f:
+    long_description = f.read()
+
 setup(name='gtable',
       version=__version__,
       description='A fast table-like container for data analytics',
       packages=['gtable'],
+      long_description=long_description,
       license='Revised BSD-3 Clause',
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
