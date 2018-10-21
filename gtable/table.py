@@ -271,15 +271,24 @@ class Table:
     @classmethod
     def from_pandas(cls, dataframe):
         """Create a table from a pandas dataframe"""
-        table = {'idx': dataframe.index.values}
-        table.update({k: dataframe[k].values for k in dataframe})
+        table = cls()
 
-        # Try to reconvert columns of objects
-        for k in table:
-            if table[k].dtype == np.dtype('O'):
-                table[k] = np.array(list(table[k]))
+        if np.all(np.isfinite(dataframe.index.values)):
+            table.add_column('idx', dataframe.index.values)
+        else:
+            raise ValueError('Dataframe index must not contain NaNs')
 
-        return cls(table)
+        for k in dataframe:
+            if dataframe[k].values.dtype == np.dtype('O'):
+                table.add_column(k, np.array(list(dataframe[k].values)))
+            elif dataframe[k].values.dtype == np.dtype('datetime64[ns]'):
+                nidx = dataframe[k].values == np.datetime64('NaT')
+                table.add_column(k, dataframe[k].values[~nidx], dtype=dataframe[k].values.dtype, index=~nidx)
+            else:
+                nidx = np.isnan(dataframe[k].values)
+                table.add_column(k, dataframe[k].values[~nidx], dtype=dataframe[k].values.dtype, index=~nidx)
+
+        return table
 
     @staticmethod
     def from_chunks(chunks):

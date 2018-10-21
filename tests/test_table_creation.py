@@ -106,7 +106,24 @@ def test_from_pandas():
     assert np.all(t.idx.values == df.index.values)
 
 
-def test_simple_table():
+def test_from_pandas_sparse():
+    df = pd.DataFrame(
+        {'a': [1, 2, 3, np.nan],
+         'b': np.arange(4, dtype=np.float64),
+         'c': pd.date_range('2002-01-01', periods=4, freq='M')}
+    )
+    t = Table.from_pandas(df)
+
+    assert np.all(t.index == np.array(
+            [[1, 1, 1, 1],
+            [1, 1, 1, 0],
+            [1, 1, 1, 1],
+            [1, 1, 1, 1]], dtype=np.uint8))
+
+    assert np.all(t.a.values == np.array([1,2,3], dtype=np.float64))
+
+
+def test_simple_rename():
     t = Table({'a': [1, 2, 3], 'b': np.array([4, 5, 6])})
     t.rename_column('a', 'c')
 
